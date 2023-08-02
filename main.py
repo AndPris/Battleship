@@ -1,5 +1,6 @@
 import pygame
 import random
+import copy
 
 pygame.init()
 
@@ -13,9 +14,12 @@ GRID_SIZE = 10
 CELL_SIZE = 30
 MARGIN = 1
 MISS_RADIUS = 5
+GRID_WIDTH = 11 * (CELL_SIZE + MARGIN)
+SHIP_SIZES = [4, 3, 3, 2, 2, 2, 1, 1, 1, 1]
 
-PLAYER_GRID_RIGHT_MARGIN, PLAYER_GRID_TOP_MARGIN = (50, 50)
-COMPUTER_GRID_RIGHT_MARGIN, COMPUTER_GRID_TOP_MARGIN = (50 + 11 * (CELL_SIZE + MARGIN) + 100, 50)
+PLAYER_GRID_RIGHT_MARGIN, PLAYER_GRID_TOP_MARGIN = (50, 100)
+COMPUTER_GRID_RIGHT_MARGIN, COMPUTER_GRID_TOP_MARGIN = (PLAYER_GRID_RIGHT_MARGIN + GRID_WIDTH + 100, PLAYER_GRID_TOP_MARGIN)
+
 
 player_grid = [[0]*10 for i in range(10)]
 computer_grid = [[0]*10 for i in range(10)]
@@ -25,8 +29,8 @@ font = pygame.font.SysFont("arial", CELL_SIZE + MARGIN)
 
 def display_grid(grid, right_margin, top_margin):
     for row in range(GRID_SIZE):
-        char = font.render(chr(row + 65), False, WHITE)
-        num = font.render(str(row + 1), False, WHITE)
+        char = font.render(chr(row + 65), False, BLACK)
+        num = font.render(str(row + 1), False, BLACK)
 
         char_rect = char.get_rect()
         num_rect = num.get_rect()
@@ -44,12 +48,102 @@ def display_grid(grid, right_margin, top_margin):
             y = top_margin + (col + 1) * (MARGIN + CELL_SIZE)
             pygame.draw.rect(screen, WHITE, (x, y, CELL_SIZE, CELL_SIZE))
 
-            if grid[row][col] == 1:
+            if grid[col][row] == 1:
                 pygame.draw.circle(screen, BLACK, [x + CELL_SIZE//2, y + CELL_SIZE//2], MISS_RADIUS, 0)
-            elif grid[row][col] == 2:
+            elif grid[col][row] == 2:
                 pygame.draw.line(screen, RED, (x+3, y+3), (x+CELL_SIZE-3, y+CELL_SIZE-3), 3)
                 pygame.draw.line(screen, RED, (x+CELL_SIZE-3, y+3), (x+3, y+CELL_SIZE-3), 3)
 
+
+def is_valid_replacement(grid):
+
+    def is_neighbor_empty(grid_to_check, ship_x, ship_y):
+        if ship_x-1 >= 0 and ship_y-1 >= 0:
+            if grid_to_check[ship_x-1][ship_y-1] == 2:
+                return False
+        if ship_x-1 >= 0 and ship_y+1 <= 9:
+            if grid_to_check[ship_x-1][ship_y+1] == 2:
+                return False
+        if ship_x+1 <= 9 and ship_y+1 <= 9:
+            if grid_to_check[ship_x+1][ship_y+1] == 2:
+                return False
+        if ship_x+1 <= 9 and ship_y-1 >= 0:
+            if grid_to_check[ship_x+1][ship_y-1] == 2:
+                return False
+
+        return True
+
+    for i in range(GRID_SIZE):
+        for j in range(GRID_SIZE):
+            if grid[i][j] == 2:
+                if not is_neighbor_empty(grid, i, j):
+                    return False
+
+    return True
+
+
+def is_valid_start_position(grid, row, col, ship_size, orientation):
+    if orientation == 0: # horizontal
+        for i in range(row-1, row+2):
+            if i < 0 or i > 9:
+                continue
+            for j in range(col-1, col+ship_size+1):
+                if j >= 0 and j <= 9:
+                    if grid[i][j] == 2:
+                        return False
+    else:
+        for i in range(row-1, row+ship_size+1):
+            if i < 0 or i > 9:
+                continue
+            for j in range(col-1, col+2):
+                if j >= 0 and j <= 9:
+                    if grid[i][j] == 2:
+                        return False
+    return True
+def place_ship(grid, ship_size):
+    ship_orientation = random.randint(0, 1)
+    new_grid = copy.deepcopy(grid)
+
+    if ship_orientation == 0:  # horizontal
+        ship_col = random.randint(0, 10 - ship_size)
+        ship_row = random.randint(0, 9)
+        while not is_valid_start_position(new_grid, ship_row, ship_col, ship_size, ship_orientation):
+            ship_col = random.randint(0, 10 - ship_size)
+            ship_row = random.randint(0, 9)
+
+        new_grid[ship_row][ship_col] = 2
+
+        for j in range(ship_size - 1):
+            new_grid[ship_row][ship_col + j + 1] = 2
+    else:  # vertical
+        ship_col = random.randint(0, 9)
+        ship_row = random.randint(0, 10 - ship_size)
+        while not is_valid_start_position(new_grid, ship_row, ship_col, ship_size, ship_orientation):
+            ship_col = random.randint(0, 9)
+            ship_row = random.randint(0, 10 - ship_size)
+
+        new_grid[ship_row][ship_col] = 2
+
+        for j in range(ship_size - 1):
+            new_grid[ship_row + j + 1][ship_col] = 2
+
+    if not is_valid_replacement(new_grid):
+        return False
+
+
+
+    # grid = copy.deepcopy(new_grid)
+    for i in range(GRID_SIZE):
+        for j in range(GRID_SIZE):
+            grid[i][j] = new_grid[i][j]
+
+    return True
+
+
+def place_ships(grid, ship_sizes):
+    for size in ship_sizes:
+        while not place_ship(grid, size):
+            pass
 
 ICON = pygame.image.load("icon.png")
 screen = pygame.display.set_mode(SCREEN_SIZE)
@@ -58,6 +152,9 @@ pygame.display.set_icon(ICON)
 
 run = True
 turn = 0  # 0, 2, 4 - player;  1,3,5 - computer
+
+place_ships(computer_grid, SHIP_SIZES)
+
 while run:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -84,5 +181,14 @@ while run:
     screen.fill(BACKGROUND_COLOR)
     display_grid(player_grid, PLAYER_GRID_RIGHT_MARGIN, PLAYER_GRID_TOP_MARGIN)
     display_grid(computer_grid, COMPUTER_GRID_RIGHT_MARGIN, COMPUTER_GRID_TOP_MARGIN)
+
+    you = font.render("You", True, BLACK)
+    computer = font.render("Computer", True, BLACK)
+    you_rect = you.get_rect(); computer_rect = computer.get_rect()
+    you_rect.center = ((PLAYER_GRID_RIGHT_MARGIN*2+GRID_WIDTH)//2, PLAYER_GRID_TOP_MARGIN//2)
+    computer_rect.center = ((COMPUTER_GRID_RIGHT_MARGIN*2+GRID_WIDTH)//2, COMPUTER_GRID_TOP_MARGIN//2)
+    screen.blit(you, you_rect)
+    screen.blit(computer, computer_rect)
+
 
     pygame.display.update()
