@@ -15,7 +15,7 @@ MISS_RADIUS = 5
 GRID_WIDTH = 11 * (CELL_SIZE + MARGIN)
 SHIP_SIZES = [4, 3, 3, 2, 2, 2, 1, 1, 1, 1]
 
-PLAYER_GRID_RIGHT_MARGIN, PLAYER_GRID_TOP_MARGIN = (50, 100)
+PLAYER_GRID_RIGHT_MARGIN, PLAYER_GRID_TOP_MARGIN = (50, 150)
 COMPUTER_GRID_RIGHT_MARGIN, COMPUTER_GRID_TOP_MARGIN = (PLAYER_GRID_RIGHT_MARGIN + GRID_WIDTH + 100, PLAYER_GRID_TOP_MARGIN)
 
 ICON = pygame.image.load("icon.png")
@@ -87,44 +87,37 @@ def smart_generate_coords(grid, row, col):
     print(choice)
     return choice
 
+
 def display_screen():
+    win_text = None
+    font = pygame.font.SysFont("arial", CELL_SIZE * 2)
+
     screen.fill(BACKGROUND_COLOR)
     computer_grid.display(screen, CELL_SIZE, MARGIN, COMPUTER_GRID_RIGHT_MARGIN, COMPUTER_GRID_TOP_MARGIN, MISS_RADIUS, CRASHED_SHIP_CELL)
     player_grid.display(screen, CELL_SIZE, MARGIN, PLAYER_GRID_RIGHT_MARGIN, PLAYER_GRID_TOP_MARGIN, MISS_RADIUS, CRASHED_SHIP_CELL)
+
+    if computer_grid.is_loose():
+        win_text = font.render("You win!", True, GREEN)
+    elif player_grid.is_loose():
+        win_text = font.render("Computer wins :(", True, RED)
+
+    if win_text is not None:
+        pygame.time.wait(1000)
+        win_text_rect = win_text.get_rect()
+        win_text_rect.center = (PLAYER_GRID_RIGHT_MARGIN + GRID_WIDTH, PLAYER_GRID_TOP_MARGIN // 2)
+        screen.blit(win_text, win_text_rect)
+
     pygame.display.update()
 
-# def check_win():
-#     player_win = True
-#     computer_win = False
-#
-#     for i in range(GRID_SIZE):
-#         for j in range(GRID_SIZE):
-#             if computer_grid[i][j] == 2:
-#                 player_win = False
-#             if player_grid[i][j] == 2:
-#                 computer_win = False
-#
-#     win_text = None
-#     if player_win:
-#         win_text = font.render("You win!", True, YELLOW)
-#     elif computer_win:
-#         win_text = font.render("Computer wins :(", True, RED)
-#
-#     if win_text is None:
-#         return False
-#
-#     pygame.time.wait(1000)
-#     screen.fill(BLACK)
-#     win_text_rect = win_text.get_rect()
-#     win_text_rect.center = (SCREEN_WIDTH//2, SCREEN_HEIGHT//2)
-#     screen.blit(win_text, win_text_rect)
-#
-#     return True
+    if win_text is None:
+        return False
+    return True
 
 
 run = True
 start = True
 turn = 0  # 0, 2, 4 - player;  1,3,5 - computer
+game_over = False
 
 # welcome_text = font.render("Press space to start game", True, BLACK)
 # screen.fill(WHITE)
@@ -140,7 +133,7 @@ while run:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
-        elif event.type == pygame.MOUSEBUTTONDOWN and start:
+        elif event.type == pygame.MOUSEBUTTONDOWN and not game_over:
             if turn%2 == 0:
                 x, y = pygame.mouse.get_pos()
 
@@ -168,7 +161,7 @@ while run:
     #
     #     pygame.display.update()
 
-    if turn % 2 == 1:
+    if not game_over and turn % 2 == 1:
         # pygame.time.wait(300)
         if not has_aim:
             row, col = generate_coords()
@@ -182,7 +175,8 @@ while run:
 
             if is_killed:
                 has_aim = False
-
+        # row, col = generate_coords()
+        # result, is_killed = player_grid.shoot(row, col)
         turn += result
 
-    display_screen()
+    game_over = display_screen()

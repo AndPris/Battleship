@@ -6,6 +6,7 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 YELLOW = (255, 255, 0)
+GREEN = (0, 255, 0)
 
 EMPTY_CELL = 0
 MISS_CELL = 1
@@ -33,7 +34,8 @@ class Grid:
 
         title_text = font.render(self.__title, True, BLACK)
         title_text_rect = title_text.get_rect()
-        title_text_rect.center = ((right_margin*2 + (self.__size+1)*(cell_size+margin))//2, top_margin//2)
+        title_text_rect.centerx = (right_margin*2 + (self.__size+1)*(cell_size+margin))//2
+        title_text_rect.bottom = top_margin
         screen.blit(title_text, title_text_rect)
 
         for row in range(self.__size):
@@ -197,3 +199,11 @@ class Grid:
             self.__cells[row + 1][col - 1] = 1
 
         return HIT_VALUE, is_killed(row, col)  # hit
+
+    def is_loose(self):
+        for i in range(self.__size):
+            for j in range(self.__size):
+                if self.__cells[i][j] == SHIP_CELL:
+                    return False
+        return True
+
