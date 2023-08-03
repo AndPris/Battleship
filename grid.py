@@ -15,6 +15,10 @@ CRASHED_SHIP_CELL = 3
 HORIZONTAL = 0
 VERTICAL = 1
 
+SAME_CELL_VALUE = 0
+MISS_VALUE = 1
+HIT_VALUE = 2
+
 
 class Grid:
     def __init__(self, grid_size, title):
@@ -111,3 +115,85 @@ class Grid:
         for size in ship_sizes:
             while not place_ship(size):
                 pass
+
+    def get_cell_value(self, row, col):
+        return self.__cells[row][col]
+
+    def shoot(self, row, col):
+        if self.__cells[row][col] == MISS_CELL or self.__cells[row][col] == CRASHED_SHIP_CELL:
+            return SAME_CELL_VALUE, None  # cell is already shot
+
+        if self.__cells[row][col] == EMPTY_CELL:
+            self.__cells[row][col] = MISS_CELL
+            return MISS_VALUE, None  # miss
+
+        def is_killed(row, col):
+            ship_cells = [(row, col)]
+
+            temp_row = row - 1
+            while temp_row >= 0 and self.__cells[temp_row][col] != 0 and self.__cells[temp_row][col] != 1:
+                ship_cells.append((temp_row, col))
+                temp_row -= 1
+
+            temp_row = row + 1
+            while temp_row <= self.__size-1 and self.__cells[temp_row][col] != 0 and self.__cells[temp_row][col] != 1:
+                ship_cells.append((temp_row, col))
+                temp_row += 1
+
+            temp_col = col - 1
+            while temp_col >= 0 and self.__cells[row][temp_col] != 0 and self.__cells[row][temp_col] != 1:
+                ship_cells.append((row, temp_col))
+                temp_col -= 1
+
+            temp_col = col + 1
+            while temp_col <= self.__size-1 and self.__cells[row][temp_col] != 0 and self.__cells[row][temp_col] != 1:
+                ship_cells.append((row, temp_col))
+                temp_col += 1
+
+            for cell in ship_cells:
+                if self.__cells[cell[0]][cell[1]] == SHIP_CELL:
+                    return False
+
+            if len(ship_cells) == 1 or ship_cells[0][0] == ship_cells[1][0]:  # horizontal
+                ship_begin_col = self.__size-1
+                for cell in ship_cells:
+                    if cell[1] < ship_begin_col:
+                        ship_begin_col = cell[1]
+
+                for i in range(row - 1, row + 2):
+                    if i < 0 or i > self.__size-1:
+                        continue
+                    for j in range(ship_begin_col - 1, ship_begin_col + len(ship_cells) + 1):
+                        if j < 0 or j > self.__size-1:
+                            continue
+
+                        if self.__cells[i][j] == EMPTY_CELL:
+                            self.__cells[i][j] = MISS_CELL
+            else:  # vertical
+                ship_begin_row = self.__size-1
+                for cell in ship_cells:
+                    if cell[0] < ship_begin_row:
+                        ship_begin_row = cell[0]
+
+                for i in range(ship_begin_row - 1, ship_begin_row + len(ship_cells) + 1):
+                    if i < 0 or i > self.__size-1:
+                        continue
+                    for j in range(col - 1, col + 2):
+                        if j < 0 or j > self.__size-1:
+                            continue
+
+                        if self.__cells[i][j] == EMPTY_CELL:
+                            self.__cells[i][j] = MISS_CELL
+            return True
+
+        self.__cells[row][col] = CRASHED_SHIP_CELL
+        if row - 1 >= 0 and col - 1 >= 0:
+            self.__cells[row - 1][col - 1] = 1
+        if row - 1 >= 0 and col + 1 <= self.__size - 1:
+            self.__cells[row - 1][col + 1] = 1
+        if row + 1 <= self.__size - 1 and col + 1 <= self.__size - 1:
+            self.__cells[row + 1][col + 1] = 1
+        if row + 1 <= self.__size - 1 and col - 1 >= 0:
+            self.__cells[row + 1][col - 1] = 1
+
+        return HIT_VALUE, is_killed(row, col)  # hit

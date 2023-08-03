@@ -1,4 +1,6 @@
 import copy
+import random
+
 from grid import *
 
 pygame.init()
@@ -25,114 +27,71 @@ pygame.display.set_icon(ICON)
 player_grid = Grid(GRID_SIZE, "You")
 computer_grid = Grid(GRID_SIZE, "Computer")
 computer_grid.randomly_place_ships(SHIP_SIZES)
+player_grid.randomly_place_ships(SHIP_SIZES)
 
-screen.fill(BACKGROUND_COLOR)
-computer_grid.display(screen, CELL_SIZE, MARGIN, COMPUTER_GRID_RIGHT_MARGIN, COMPUTER_GRID_TOP_MARGIN, MISS_RADIUS, 2)
-player_grid.display(screen, CELL_SIZE, MARGIN, PLAYER_GRID_RIGHT_MARGIN, PLAYER_GRID_TOP_MARGIN, MISS_RADIUS, 2)
 
-def generate_coords(grid):
-    row = random.randint(0, 9)
-    col = random.randint(0, 9)
-    while grid[row][col] == 1 or grid[row][col] == 3:
-        row = random.randint(0, 9)
-        col = random.randint(0, 9)
+def generate_coords():
+    row = random.randint(0, GRID_SIZE-1)
+    col = random.randint(0, GRID_SIZE-1)
 
     return row, col
 
-
-def is_killed(grid, row, col):
-    ship_cells = [(row, col)]
-
-    temp_row = row - 1
-    while temp_row >= 0 and grid[temp_row][col] != 0 and grid[temp_row][col] != 1:
-        ship_cells.append((temp_row, col))
-        temp_row -= 1
-
-    temp_row = row + 1
-    while temp_row <= 9 and grid[temp_row][col] != 0 and grid[temp_row][col] != 1:
-        ship_cells.append((temp_row, col))
-        temp_row += 1
-
-    temp_col = col - 1
-    while temp_col >= 0 and grid[row][temp_col] != 0 and grid[row][temp_col] != 1:
-        ship_cells.append((row, temp_col))
-        temp_col -= 1
-
-    temp_col = col + 1
-    while temp_col <= 9 and grid[row][temp_col] != 0 and grid[row][temp_col] != 1:
-        ship_cells.append((row, temp_col))
-        temp_col += 1
-
-    for cell in ship_cells:
-        if grid[cell[0]][cell[1]] == 2:
-            return False
-
-    if len(ship_cells) == 1 or ship_cells[0][0] == ship_cells[1][0]:  # horizontal
-        ship_begin_col = 9
-        for cell in ship_cells:
-            if cell[1] < ship_begin_col:
-                ship_begin_col = cell[1]
-
-        for i in range(row-1, row+2):
-            if i < 0 or i > 9:
-                continue
-            for j in range(ship_begin_col-1, ship_begin_col + len(ship_cells) + 1):
-                if j < 0 or j > 9:
-                    continue
-
-                if grid[i][j] == 0:
-                    grid[i][j] = 1
-    else:  # vertical
-        ship_begin_row = 9
-        for cell in ship_cells:
-            if cell[0] < ship_begin_row:
-                ship_begin_row = cell[0]
-
-        for i in range(ship_begin_row - 1, ship_begin_row + len(ship_cells) + 1):
-            if i < 0 or i > 9:
-                continue
-            for j in range(col - 1, col + 2):
-                if j < 0 or j > 9:
-                    continue
-
-                if grid[i][j] == 0:
-                    grid[i][j] = 1
-    return True
+def smart_generate_coords(grid, row, col):
+    probable_ship_cells = []
 
 
-def shoot(grid, row, col):
-    if grid[row][col] == 0:
-        grid[row][col] = 1
-        return 1  # miss
-    elif grid[row][col] == 2:
-        grid[row][col] = 3
-        if row - 1 >= 0 and col - 1 >= 0:
-            grid[row - 1][col - 1] = 1
-        if row - 1 >= 0 and col + 1 <= 9:
-            grid[row - 1][col + 1] = 1
-        if row + 1 <= 9 and col + 1 <= 9:
-            grid[row + 1][col + 1] = 1
-        if row + 1 <= 9 and col - 1 >= 0:
-            grid[row + 1][col - 1] = 1
+    if (row - 1 >= 0 and grid.get_cell_value(row-1, col) == CRASHED_SHIP_CELL) or (row + 1 <= GRID_SIZE-1 and grid.get_cell_value(row+1, col) == CRASHED_SHIP_CELL):
+        print("If")
+        temp_row = row - 1
+        while temp_row >= 0 and grid.get_cell_value(temp_row, col) == CRASHED_SHIP_CELL:
+            temp_row -= 1
 
-        is_killed(grid, row, col)
+        if temp_row >= 0 and grid.get_cell_value(temp_row, col) != MISS_CELL:
+            probable_ship_cells.append((temp_row, col))
 
-    return 0  # hit
+        temp_row = row + 1
+        while temp_row <= GRID_SIZE-1 and grid.get_cell_value(temp_row, col) == CRASHED_SHIP_CELL:
+            temp_row += 1
 
+        if temp_row <= GRID_SIZE-1 and grid.get_cell_value(temp_row, col) != MISS_CELL:
+            probable_ship_cells.append((temp_row, col))
 
-# def display_screen():
-#     screen.fill(BACKGROUND_COLOR)
-#     display_grid(player_grid, PLAYER_GRID_RIGHT_MARGIN, PLAYER_GRID_TOP_MARGIN, 3)
-#     display_grid(computer_grid, COMPUTER_GRID_RIGHT_MARGIN, COMPUTER_GRID_TOP_MARGIN, 3)
-#
-#     you = font.render("You", True, BLACK)
-#     computer = font.render("Computer", True, BLACK)
-#     you_rect = you.get_rect();
-#     computer_rect = computer.get_rect()
-#     you_rect.center = ((PLAYER_GRID_RIGHT_MARGIN * 2 + GRID_WIDTH) // 2, PLAYER_GRID_TOP_MARGIN // 2)
-#     computer_rect.center = ((COMPUTER_GRID_RIGHT_MARGIN * 2 + GRID_WIDTH) // 2, COMPUTER_GRID_TOP_MARGIN // 2)
-#     screen.blit(you, you_rect)
-#     screen.blit(computer, computer_rect)
+    elif (col - 1 >= 0 and grid.get_cell_value(row, col-1) == CRASHED_SHIP_CELL) or (col + 1 <= GRID_SIZE-1 and grid.get_cell_value(row, col+1) == CRASHED_SHIP_CELL):
+        print("Elif")
+        temp_col = col - 1
+        while temp_col >= 0 and grid.get_cell_value(row, temp_col) == CRASHED_SHIP_CELL:
+            temp_col -= 1
+
+        if temp_col >= 0 and grid.get_cell_value(row, temp_col) != MISS_CELL:
+            probable_ship_cells.append((row, temp_col))
+
+        temp_col = col + 1
+        while temp_col <= GRID_SIZE-1 and grid.get_cell_value(row, temp_col) == CRASHED_SHIP_CELL:
+            temp_col += 1
+
+        if temp_col <= GRID_SIZE-1 and grid.get_cell_value(row, temp_col) != MISS_CELL:
+            probable_ship_cells.append((row, temp_col))
+    else:
+        print("Else")
+        if col-1 >= 0 and grid.get_cell_value(row, col-1) != MISS_CELL:
+            probable_ship_cells.append((row, col-1))
+        if col+1 <= GRID_SIZE-1 and grid.get_cell_value(row, col+1) != MISS_CELL:
+            probable_ship_cells.append((row, col+1))
+        if row-1 >= 0 and grid.get_cell_value(row-1, col) != MISS_CELL:
+            probable_ship_cells.append((row-1, col))
+        if row+1 <= GRID_SIZE-1 and grid.get_cell_value(row+1, col) != MISS_CELL:
+            probable_ship_cells.append((row+1, col))
+
+    choice = probable_ship_cells[random.randint(0, len(probable_ship_cells)-1)]
+    print(probable_ship_cells)
+    print(choice)
+    return choice
+
+def display_screen():
+    screen.fill(BACKGROUND_COLOR)
+    computer_grid.display(screen, CELL_SIZE, MARGIN, COMPUTER_GRID_RIGHT_MARGIN, COMPUTER_GRID_TOP_MARGIN, MISS_RADIUS, CRASHED_SHIP_CELL)
+    player_grid.display(screen, CELL_SIZE, MARGIN, PLAYER_GRID_RIGHT_MARGIN, PLAYER_GRID_TOP_MARGIN, MISS_RADIUS, CRASHED_SHIP_CELL)
+    pygame.display.update()
 
 # def check_win():
 #     player_win = True
@@ -163,8 +122,6 @@ def shoot(grid, row, col):
 #     return True
 
 
-
-
 run = True
 start = True
 turn = 0  # 0, 2, 4 - player;  1,3,5 - computer
@@ -176,6 +133,8 @@ turn = 0  # 0, 2, 4 - player;  1,3,5 - computer
 # screen.blit(welcome_text, welcome_text_rect)
 # pygame.display.update()
 
+is_killed = True
+has_aim = False
 
 while run:
     for event in pygame.event.get():
@@ -189,7 +148,8 @@ while run:
                     row = (y-COMPUTER_GRID_TOP_MARGIN-CELL_SIZE-MARGIN) // (CELL_SIZE + MARGIN)
                     col = (x-COMPUTER_GRID_RIGHT_MARGIN-MARGIN) // (CELL_SIZE + MARGIN)
 
-                    turn += shoot(computer_grid, row, col)
+                    result, not_used = computer_grid.shoot(row, col)
+                    turn += result
         # elif event.type == pygame.KEYDOWN:
         #     if event.key == pygame.K_SPACE:
         #         place_ships(player_grid, SHIP_SIZES)
@@ -200,15 +160,29 @@ while run:
         #         place_ships(computer_grid, SHIP_SIZES)
         #         start = True
 
-    if start:
-        # if check_win():
-        #     pass
-        # else:
-        # display_screen()
+    # if start:
+    #     # if check_win():
+    #     #     pass
+    #     # else:
+    #     # display_screen()
+    #
+    #     pygame.display.update()
 
-        pygame.display.update()
+    if turn % 2 == 1:
+        # pygame.time.wait(300)
+        if not has_aim:
+            row, col = generate_coords()
+            result, is_killed = player_grid.shoot(row, col)
+            if result == HIT_VALUE and not is_killed:
+                anchor_row, anchor_col = row, col
+                has_aim = True
+        else:
+            row, col = smart_generate_coords(player_grid, anchor_row, anchor_col)
+            result, is_killed = player_grid.shoot(row, col)
 
-        if turn % 2 == 1:
-            pygame.time.wait(300)
-            row, col = generate_coords(player_grid)
-            turn += shoot(player_grid, row, col)
+            if is_killed:
+                has_aim = False
+
+        turn += result
+
+    display_screen()
