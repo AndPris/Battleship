@@ -1,5 +1,7 @@
 import pygame
 import random
+from ship import *
+from cell import *
 
 BACKGROUND_COLOR = (23, 227, 193)
 WHITE = (255, 255, 255)
@@ -7,17 +9,17 @@ BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 YELLOW = (255, 255, 0)
 
-EMPTY_CELL = 0
-MISS_CELL = 1
-SHIP_CELL = 2
-CRASHED_SHIP_CELL = 3
-
 
 class Grid:
     def __init__(self, grid_size, title):
         self.__size = grid_size
         self.__title = title
-        self.__cells = [[EMPTY_CELL]*10 for i in range(self.__size)]
+        # self.__cells = [[Cell()]*10 for i in range(self.__size)]
+        for i in range(self.__size):
+            for j in range(self.__size):
+                self.__cells[i][j] = Cell(i, j)
+
+        self.__ships = []
 
     def display(self, screen, cell_size, margin, right_margin, top_margin, miss_radius, show_ships):
         font = pygame.font.SysFont("arial", cell_size + margin)
@@ -47,15 +49,15 @@ class Grid:
                 y = top_margin + (col + 1) * (margin + cell_size)
                 pygame.draw.rect(screen, WHITE, (x, y, cell_size, cell_size))
 
-                if self.__cells[col][row] == MISS_CELL:
+                if self.__cells[col][row].get_state() == MISS_CELL:
                     pygame.draw.circle(screen, BLACK, [x + cell_size // 2, y + cell_size // 2], miss_radius, 0)
-                elif self.__cells[col][row] == show_ships:
+                elif self.__cells[col][row].get_state() == show_ships:
                     pygame.draw.line(screen, RED, (x + 3, y + 3), (x + cell_size - 3, y + cell_size - 3), 3)
                     pygame.draw.line(screen, RED, (x + cell_size - 3, y + 3), (x + 3, y + cell_size - 3), 3)
 
     def randomly_place_ships(self, ship_sizes):
         def is_valid_start_position(row, col, ship_size, orientation):
-            if orientation == 0:  # horizontal
+            if orientation == HORIZONTAL:  # horizontal
                 for i in range(row - 1, row + 2):
                     if i < 0 or i > 9:
                         continue
@@ -76,9 +78,9 @@ class Grid:
             return True
 
         def place_ship(ship_size):
-            ship_orientation = random.randint(0, 1)
+            ship_orientation = random.choice(HORIZONTAL, VERTICAL)
 
-            if ship_orientation == 0:  # horizontal
+            if ship_orientation == HORIZONTAL:  # horizontal
                 ship_col = random.randint(0, 10 - ship_size)
                 ship_row = random.randint(0, 9)
                 while not is_valid_start_position(ship_row, ship_col, ship_size, ship_orientation):
