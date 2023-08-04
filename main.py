@@ -23,7 +23,7 @@ pygame.display.set_icon(ICON)
 player_grid = Grid(GRID_SIZE, "You")
 computer_grid = Grid(GRID_SIZE, "Computer")
 computer_grid.randomly_place_ships(SHIP_SIZES)
-player_grid.randomly_place_ships(SHIP_SIZES)
+# player_grid.randomly_place_ships(SHIP_SIZES)
 
 
 def display_screen():
@@ -31,19 +31,19 @@ def display_screen():
     font = pygame.font.SysFont("arial", CELL_SIZE * 2)
 
     screen.fill(BACKGROUND_COLOR)
-    computer_grid.display(screen, CELL_SIZE, MARGIN, COMPUTER_GRID_RIGHT_MARGIN, COMPUTER_GRID_TOP_MARGIN, MISS_RADIUS, CRASHED_SHIP_CELL)
-    player_grid.display(screen, CELL_SIZE, MARGIN, PLAYER_GRID_RIGHT_MARGIN, PLAYER_GRID_TOP_MARGIN, MISS_RADIUS, CRASHED_SHIP_CELL)
+    computer_grid.display(screen, CELL_SIZE, MARGIN, COMPUTER_GRID_RIGHT_MARGIN, COMPUTER_GRID_TOP_MARGIN, MISS_RADIUS, SHIP_CELL)
+    player_grid.display(screen, CELL_SIZE, MARGIN, PLAYER_GRID_RIGHT_MARGIN, PLAYER_GRID_TOP_MARGIN, MISS_RADIUS, SHIP_CELL)
 
-    if computer_grid.is_loose():
-        win_text = font.render("You win!", True, GREEN)
-    elif player_grid.is_loose():
-        win_text = font.render("Computer wins :(", True, RED)
-
-    if win_text is not None:
-        pygame.time.wait(1000)
-        win_text_rect = win_text.get_rect()
-        win_text_rect.center = (PLAYER_GRID_RIGHT_MARGIN + GRID_WIDTH, PLAYER_GRID_TOP_MARGIN // 2)
-        screen.blit(win_text, win_text_rect)
+    # if computer_grid.is_loose():
+    #     win_text = font.render("You win!", True, GREEN)
+    # elif player_grid.is_loose():
+    #     win_text = font.render("Computer wins :(", True, RED)
+    #
+    # if win_text is not None:
+    #     pygame.time.wait(1000)
+    #     win_text_rect = win_text.get_rect()
+    #     win_text_rect.center = (PLAYER_GRID_RIGHT_MARGIN + GRID_WIDTH, PLAYER_GRID_TOP_MARGIN // 2)
+    #     screen.blit(win_text, win_text_rect)
 
     pygame.display.update()
 
@@ -57,26 +57,26 @@ display_screen()
 
 
 def draw_ships(left_margin, top_margin):
-    four_deck_ship1 = Ship(left_margin, top_margin, 4) #pygame.draw.rect(screen, BLUE, (left_margin, top_margin, 4*(CELL_SIZE+MARGIN), CELL_SIZE))
+    four_deck_ship1 = Ship(screen, left_margin, top_margin, 4) #pygame.draw.rect(screen, BLUE, (left_margin, top_margin, 4*(CELL_SIZE+MARGIN), CELL_SIZE))
 
-    three_deck_ship1 = Ship(four_deck_ship1.left(), four_deck_ship1.bottom()+SHIP_MARGIN, 3) # pygame.draw.rect(screen, BLUE, (four_deck_ship1.left, four_deck_ship1.bottom+SHIP_MARGIN, 3*(CELL_SIZE+MARGIN), CELL_SIZE))
-    three_deck_ship2 = Ship(three_deck_ship1.right()+SHIP_MARGIN, three_deck_ship1.top(), 3)  # pygame.draw.rect(screen, BLUE, (three_deck_ship1.right+SHIP_MARGIN, three_deck_ship1.top, 3*(CELL_SIZE+MARGIN), CELL_SIZE))
+    three_deck_ship1 = Ship(screen, four_deck_ship1.left(), four_deck_ship1.bottom()+SHIP_MARGIN, 3) # pygame.draw.rect(screen, BLUE, (four_deck_ship1.left, four_deck_ship1.bottom+SHIP_MARGIN, 3*(CELL_SIZE+MARGIN), CELL_SIZE))
+    three_deck_ship2 = Ship(screen, three_deck_ship1.right()+SHIP_MARGIN, three_deck_ship1.top(), 3)  # pygame.draw.rect(screen, BLUE, (three_deck_ship1.right+SHIP_MARGIN, three_deck_ship1.top, 3*(CELL_SIZE+MARGIN), CELL_SIZE))
 
-    two_deck_ship1 = Ship(four_deck_ship1.left(), three_deck_ship1.bottom()+SHIP_MARGIN, 2)  # pygame.draw.rect(screen, BLUE, (four_deck_ship1.left, three_deck_ship1.bottom+SHIP_MARGIN, 2*(CELL_SIZE+MARGIN), CELL_SIZE))
-    two_deck_ship2 = Ship(two_deck_ship1.right()+SHIP_MARGIN, two_deck_ship1.top(), 2)#pygame.draw.rect(screen, BLUE, (two_deck_ship1.right+SHIP_MARGIN, two_deck_ship1.top, 2*(CELL_SIZE+MARGIN), CELL_SIZE))
-    two_deck_ship3 = Ship(two_deck_ship2.right()+SHIP_MARGIN, two_deck_ship1.top(), 2)#pygame.draw.rect(screen, BLUE, (two_deck_ship2.right+SHIP_MARGIN, two_deck_ship1.top, 2*(CELL_SIZE+MARGIN), CELL_SIZE))
+    two_deck_ship1 = Ship(screen, four_deck_ship1.left(), three_deck_ship1.bottom()+SHIP_MARGIN, 2)  # pygame.draw.rect(screen, BLUE, (four_deck_ship1.left, three_deck_ship1.bottom+SHIP_MARGIN, 2*(CELL_SIZE+MARGIN), CELL_SIZE))
+    two_deck_ship2 = Ship(screen, two_deck_ship1.right()+SHIP_MARGIN, two_deck_ship1.top(), 2)#pygame.draw.rect(screen, BLUE, (two_deck_ship1.right+SHIP_MARGIN, two_deck_ship1.top, 2*(CELL_SIZE+MARGIN), CELL_SIZE))
+    two_deck_ship3 = Ship(screen, two_deck_ship2.right()+SHIP_MARGIN, two_deck_ship1.top(), 2)#pygame.draw.rect(screen, BLUE, (two_deck_ship2.right+SHIP_MARGIN, two_deck_ship1.top, 2*(CELL_SIZE+MARGIN), CELL_SIZE))
 
-    one_deck_ship1 = Ship(four_deck_ship1.left(), two_deck_ship1.bottom()+SHIP_MARGIN, 1)#pygame.draw.rect(screen, BLUE, (four_deck_ship1.left, two_deck_ship1.bottom+SHIP_MARGIN, (CELL_SIZE+MARGIN), CELL_SIZE))
-    one_deck_ship2 = Ship(one_deck_ship1.right()+SHIP_MARGIN, one_deck_ship1.top(), 1) #pygame.draw.rect(screen, BLUE, (one_deck_ship1.right+SHIP_MARGIN, one_deck_ship1.top, (CELL_SIZE+MARGIN), CELL_SIZE))
-    one_deck_ship3 = Ship(one_deck_ship2.right()+SHIP_MARGIN, one_deck_ship1.top(), 1)#pygame.draw.rect(screen, BLUE, (one_deck_ship2.right+SHIP_MARGIN, one_deck_ship1.top, (CELL_SIZE+MARGIN), CELL_SIZE))
-    one_deck_ship4 = Ship(one_deck_ship3.right()+SHIP_MARGIN, one_deck_ship1.top(), 1)  #pygame.draw.rect(screen, BLUE, (one_deck_ship3.right+SHIP_MARGIN, one_deck_ship1.top, (CELL_SIZE+MARGIN), CELL_SIZE))
+    one_deck_ship1 = Ship(screen, four_deck_ship1.left(), two_deck_ship1.bottom()+SHIP_MARGIN, 1)#pygame.draw.rect(screen, BLUE, (four_deck_ship1.left, two_deck_ship1.bottom+SHIP_MARGIN, (CELL_SIZE+MARGIN), CELL_SIZE))
+    one_deck_ship2 = Ship(screen, one_deck_ship1.right()+SHIP_MARGIN, one_deck_ship1.top(), 1) #pygame.draw.rect(screen, BLUE, (one_deck_ship1.right+SHIP_MARGIN, one_deck_ship1.top, (CELL_SIZE+MARGIN), CELL_SIZE))
+    one_deck_ship3 = Ship(screen, one_deck_ship2.right()+SHIP_MARGIN, one_deck_ship1.top(), 1)#pygame.draw.rect(screen, BLUE, (one_deck_ship2.right+SHIP_MARGIN, one_deck_ship1.top, (CELL_SIZE+MARGIN), CELL_SIZE))
+    one_deck_ship4 = Ship(screen, one_deck_ship3.right()+SHIP_MARGIN, one_deck_ship1.top(), 1)  #pygame.draw.rect(screen, BLUE, (one_deck_ship3.right+SHIP_MARGIN, one_deck_ship1.top, (CELL_SIZE+MARGIN), CELL_SIZE))
 
 
     ships = [four_deck_ship1, three_deck_ship1, three_deck_ship2, two_deck_ship1, two_deck_ship2, two_deck_ship3,
              one_deck_ship1, one_deck_ship2, one_deck_ship3, one_deck_ship4]
 
-    for ship in ships:
-        ship.display(screen)
+    # for ship in ships:
+    #     ship.display()
 
     return ships
 
@@ -104,16 +104,65 @@ while run:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
-        elif event.type == pygame.MOUSEBUTTONDOWN and not game_over and start:
-            if turn%2 == 0:
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if not game_over and start:
+                if turn%2 == 0:
+                    x, y = pygame.mouse.get_pos()
+
+                    if computer_grid.belongs(x, y):
+                        row, col = computer_grid.get_coords(x, y)
+
+                        result, not_used = computer_grid.shoot(row, col)
+                        turn += result
+            elif not start:
                 x, y = pygame.mouse.get_pos()
 
-                if x > COMPUTER_GRID_RIGHT_MARGIN and x < COMPUTER_GRID_RIGHT_MARGIN+GRID_SIZE*(CELL_SIZE+MARGIN) and y > COMPUTER_GRID_TOP_MARGIN+CELL_SIZE and y < COMPUTER_GRID_TOP_MARGIN+(GRID_SIZE+1)*(CELL_SIZE+MARGIN):
-                    row = (y-COMPUTER_GRID_TOP_MARGIN-CELL_SIZE-MARGIN) // (CELL_SIZE + MARGIN)
-                    col = (x-COMPUTER_GRID_RIGHT_MARGIN-MARGIN) // (CELL_SIZE + MARGIN)
+                for ship in player_ships:
+                    if ship.is_selected() and player_grid.belongs(x, y):
+                        row, col = player_grid.get_coords(x, y)
 
-                    result, not_used = computer_grid.shoot(row, col)
-                    turn += result
+                        if player_grid.is_valid_start_position(row, col, ship.get_size(), ship.get_orientation()):
+                            player_grid.place_ship(row, col, ship.get_size(), ship.get_orientation())
+                            precise_x, precise_y = player_grid.get_precise_coords(x, y)
+                            ship.set_left(precise_x)
+                            ship.set_top(precise_y)
+                            display_screen()
+                            for ship2 in player_ships:
+                                ship2.undo_selection()
+                    elif ship.belongs(x, y) and not player_grid.belongs(x, y):
+                        ship.select()
+                    else:
+                        ship.undo_selection()
+                    # if ship.is_selected() and player_grid.belongs(x, y):
+                    #     for ship2 in player_ships:
+                    #         if ship2.belongs(x, y):
+                    #             ship2.select()
+                    #             ship.undo_selection()
+                    #
+                    #     row, col = player_grid.get_coords(x, y)
+                    #
+                    #     if player_grid.is_valid_start_position(row, col, ship.get_size(), ship.get_orientation()):
+                    #         player_grid.place_ship(row, col, ship.get_size(), ship.get_orientation())
+                    #         precise_x, precise_y = player_grid.get_precise_coords(x, y)
+                    #         ship.set_left(precise_x)
+                    #         ship.set_top(precise_y)
+                    #         display_screen()
+                    #         for ship2 in player_ships:
+                    #             ship2.undo_selection()
+                    #     else:
+                    #         ship.undo_selection()
+                    # else:
+                    #     if ship.belongs(x, y):
+                    #         if player_grid.belongs(x, y):
+                    #             for i in range(ship.get_size()):
+                    #                 if ship.get_orientation() == HORIZONTAL:
+                    #                     player_grid.set_cell_value(row, col + i, EMPTY_CELL)
+                    #                 else:
+                    #                     player_grid.set_cell_value(row + i, col, EMPTY_CELL)
+                    #         ship.select()
+                    #     else:
+                    #         ship.undo_selection()
+
         # elif event.type == pygame.KEYDOWN:
         #     if event.key == pygame.K_SPACE:
         #         place_ships(player_grid, SHIP_SIZES)

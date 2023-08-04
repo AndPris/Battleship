@@ -30,14 +30,25 @@ class Grid:
         self.__cells = [[0]*10 for i in range(self.__size)]
 
         self.__ships = []
+        self.__cell_size = None
+        self.__margin = None
+        self.__left_margin = None
+        self.__top_margin = None
+        self.__width = None
 
-    def display(self, screen, cell_size, margin, right_margin, top_margin, miss_radius, show_ships):
+    def display(self, screen, cell_size, margin, left_margin, top_margin, miss_radius, show_ships):
+        self.__cell_size = cell_size
+        self.__margin = margin
+        self.__left_margin = left_margin
+        self.__top_margin = top_margin
+        self.__width = self.__size*self.__cell_size + (self.__size-1)*self.__margin
+
         font = pygame.font.SysFont("arial", cell_size + margin)
 
         title_text = font.render(self.__title, True, BLACK)
         title_text_rect = title_text.get_rect()
-        title_text_rect.centerx = (right_margin*2 + (self.__size+1)*(cell_size+margin))//2
-        title_text_rect.bottom = top_margin
+        title_text_rect.centerx = (left_margin*2 + (self.__size+1)*(cell_size+margin))//2
+        title_text_rect.bottom = top_margin - cell_size
         screen.blit(title_text, title_text_rect)
 
         for row in range(self.__size):
@@ -46,18 +57,18 @@ class Grid:
 
             char_rect = char.get_rect()
             num_rect = num.get_rect()
-            char_rect.top = top_margin
-            char_rect.right = right_margin + (row + 1) * (margin + cell_size) - 7  # -7 for better align
-            num_rect.top = top_margin + (row + 1) * (margin + cell_size)
-            num_rect.right = right_margin
+            char_rect.top = title_text_rect.bottom
+            char_rect.centerx = left_margin + row * (margin + cell_size) + cell_size//2
+            num_rect.top = top_margin + row * (margin + cell_size)
+            num_rect.right = left_margin
 
             screen.blit(char, char_rect)
             screen.blit(num, num_rect)
 
         for row in range(self.__size):
             for col in range(self.__size):
-                x = right_margin + (row + 1) * margin + row * cell_size
-                y = top_margin + (col + 1) * (margin + cell_size)
+                x = left_margin + (row + 1) * margin + row * cell_size
+                y = top_margin + col * (margin + cell_size)
                 pygame.draw.rect(screen, WHITE, (x, y, cell_size, cell_size))
 
                 if self.__cells[col][row] == MISS_CELL:
@@ -66,62 +77,65 @@ class Grid:
                     pygame.draw.line(screen, RED, (x + 3, y + 3), (x + cell_size - 3, y + cell_size - 3), 3)
                     pygame.draw.line(screen, RED, (x + cell_size - 3, y + 3), (x + 3, y + cell_size - 3), 3)
 
+    def is_valid_start_position(self, row, col, ship_size, orientation):
+        if orientation == HORIZONTAL:  # horizontal
+            if col > self.__size - ship_size:
+                return False
+
+            for i in range(row - 1, row + 2):
+                if i < 0 or i > self.__size-1:
+                    continue
+                for j in range(col - 1, col + ship_size + 1):
+                    if j < 0 or j > self.__size-1:
+                        continue
+                    if self.__cells[i][j] == SHIP_CELL:
+                        return False
+        else:  # vertical
+            if row > self.__size - ship_size:
+                return False
+
+            for i in range(row - 1, row + ship_size + 1):
+                if i < 0 or i > self.__size-1:
+                    continue
+                for j in range(col - 1, col + 2):
+                    if j < 0 or j > self.__size-1:
+                        continue
+                    if self.__cells[i][j] == SHIP_CELL:
+                        return False
+        return True
+
+    def place_ship(self, ship_row, ship_col, ship_size, ship_orientation):
+        self.__cells[ship_row][ship_col] = SHIP_CELL
+
+        if ship_orientation == HORIZONTAL:
+            for j in range(ship_size - 1):
+                self.__cells[ship_row][ship_col + j + 1] = SHIP_CELL
+        else:
+            for j in range(ship_size - 1):
+                self.__cells[ship_row + j + 1][ship_col] = SHIP_CELL
+
     def randomly_place_ships(self, ship_sizes):
-        def is_valid_start_position(row, col, ship_size, orientation):
-            if orientation == HORIZONTAL:  # horizontal
-                for i in range(row - 1, row + 2):
-                    if i < 0 or i > 9:
-                        continue
-                    for j in range(col - 1, col + ship_size + 1):
-                        if j < 0 or j > 9:
-                            continue
-                        if self.__cells[i][j] == SHIP_CELL:
-                            return False
-            else:  # vertical
-                for i in range(row - 1, row + ship_size + 1):
-                    if i < 0 or i > 9:
-                        continue
-                    for j in range(col - 1, col + 2):
-                        if j < 0 or j > 9:
-                            continue
-                        if self.__cells[i][j] == SHIP_CELL:
-                            return False
-            return True
-
-        def place_ship(ship_size):
-            ship_orientation = random.choice([HORIZONTAL, VERTICAL])
-
-            if ship_orientation == HORIZONTAL:  # horizontal
-                ship_col = random.randint(0, 10 - ship_size)
-                ship_row = random.randint(0, 9)
-                while not is_valid_start_position(ship_row, ship_col, ship_size, ship_orientation):
-                    ship_col = random.randint(0, 10 - ship_size)
-                    ship_row = random.randint(0, 9)
-
-                self.__cells[ship_row][ship_col] = SHIP_CELL
-
-                for j in range(ship_size - 1):
-                    self.__cells[ship_row][ship_col + j + 1] = SHIP_CELL
-            else:  # vertical
-                ship_col = random.randint(0, 9)
-                ship_row = random.randint(0, 10 - ship_size)
-                while not is_valid_start_position(ship_row, ship_col, ship_size, ship_orientation):
-                    ship_col = random.randint(0, 9)
-                    ship_row = random.randint(0, 10 - ship_size)
-
-                self.__cells[ship_row][ship_col] = SHIP_CELL
-
-                for j in range(ship_size - 1):
-                    self.__cells[ship_row + j + 1][ship_col] = SHIP_CELL
-
-            return True
-
         for size in ship_sizes:
-            while not place_ship(size):
-                pass
+            while True:
+                ship_orientation = random.choice([HORIZONTAL, VERTICAL])
+                if ship_orientation == HORIZONTAL:  # horizontal
+                    ship_col = random.randint(0, 10 - size)
+                    ship_row = random.randint(0, 9)
+                else:
+                    ship_col = random.randint(0, 9)
+                    ship_row = random.randint(0, 10 - size)
+
+                if self.is_valid_start_position(ship_row, ship_col, size, ship_orientation):
+                    break
+
+            self.place_ship(ship_row, ship_col, size, ship_orientation)
 
     def get_cell_value(self, row, col):
         return self.__cells[row][col]
+
+    def set_cell_value(self, row, col, value):
+        if row >= 0 and row <= self.__size-1 and col >= 0 and col <= self.__size-1:
+            self.__cells[row][col] = value
 
     def shoot(self, row, col):
         if self.__cells[row][col] == MISS_CELL or self.__cells[row][col] == CRASHED_SHIP_CELL:
@@ -209,3 +223,44 @@ class Grid:
                     return False
         return True
 
+    def top(self):
+        return self.__top_margin
+
+    def bottom(self):
+        return self.__top_margin + self.__width
+
+    def left(self):
+        return self.__left_margin
+
+    def right(self):
+        return self.__left_margin + self.__width
+
+    def belongs(self, x, y):
+        if x < self.left():
+            return False
+        if x > self.right():
+            return False
+        if y < self.top():
+            return False
+        if y > self.bottom():
+            return False
+        return True
+
+    def get_coords(self, x, y):
+        if not self.belongs(x, y):
+            return [None, None]
+
+        row = (y-self.__top_margin) // (self.__cell_size+self.__margin)
+        col = (x-self.__left_margin) // (self.__cell_size+self.__margin)
+        return [row, col]
+
+    def get_precise_coords(self, x, y):
+        if not self.belongs(x, y):
+            return [None, None]
+
+        row, col = self.get_coords(x, y)
+
+        precise_x = self.__left_margin + col * (self.__cell_size + self.__margin)
+        precise_y = self.__top_margin + row * (self.__cell_size + self.__margin)
+
+        return [precise_x, precise_y]
