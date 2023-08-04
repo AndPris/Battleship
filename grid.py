@@ -20,6 +20,8 @@ SAME_CELL_VALUE = 0
 MISS_VALUE = 1
 HIT_VALUE = 2
 
+MISS_RADIUS = 5
+
 
 class Grid:
     def __init__(self, grid_size, title):
