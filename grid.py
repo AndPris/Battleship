@@ -264,3 +264,13 @@ class Grid:
         precise_y = self.__top_margin + row * (self.__cell_size + self.__margin)
 
         return [precise_x, precise_y]
+
+    def is_ships_placed(self):
+        counted_ship_cells = 0
+
+        for i in range(self.__size):
+            for j in range(self.__size):
+                if self.__cells[i][j] == SHIP_CELL:
+                    counted_ship_cells += 1
+
+        return counted_ship_cells == 20

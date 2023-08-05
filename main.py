@@ -26,13 +26,31 @@ computer_grid.randomly_place_ships(SHIP_SIZES)
 # player_grid.randomly_place_ships(SHIP_SIZES)
 
 
+def draw_start_button():
+    btn_top_margin = PLAYER_GRID_TOP_MARGIN
+    btn_left_margin = COMPUTER_GRID_RIGHT_MARGIN + GRID_WIDTH
+    btn_height = CELL_SIZE*2
+    btn_width = CELL_SIZE*4
+
+    font = pygame.font.SysFont("arial", CELL_SIZE * 2)
+    text = font.render("Start", True, BLUE)
+    text_rect = text.get_rect()
+
+    text_rect.top = btn_top_margin
+    text_rect.left = btn_left_margin
+    btn = pygame.draw.rect(screen, GREEN, (btn_left_margin, btn_top_margin, btn_width, btn_height))
+    screen.blit(text, text_rect)
+    pygame.display.update()
+    return btn
+
+
 def display_screen():
     win_text = None
     font = pygame.font.SysFont("arial", CELL_SIZE * 2)
 
     screen.fill(BACKGROUND_COLOR)
-    computer_grid.display(screen, CELL_SIZE, MARGIN, COMPUTER_GRID_RIGHT_MARGIN, COMPUTER_GRID_TOP_MARGIN, MISS_RADIUS, SHIP_CELL)
-    player_grid.display(screen, CELL_SIZE, MARGIN, PLAYER_GRID_RIGHT_MARGIN, PLAYER_GRID_TOP_MARGIN, MISS_RADIUS, SHIP_CELL)
+    computer_grid.display(screen, CELL_SIZE, MARGIN, COMPUTER_GRID_RIGHT_MARGIN, COMPUTER_GRID_TOP_MARGIN, MISS_RADIUS, CRASHED_SHIP_CELL)
+    player_grid.display(screen, CELL_SIZE, MARGIN, PLAYER_GRID_RIGHT_MARGIN, PLAYER_GRID_TOP_MARGIN, MISS_RADIUS, CRASHED_SHIP_CELL)
 
     # if computer_grid.is_loose():
     #     win_text = font.render("You win!", True, GREEN)
@@ -44,7 +62,7 @@ def display_screen():
     #     win_text_rect = win_text.get_rect()
     #     win_text_rect.center = (PLAYER_GRID_RIGHT_MARGIN + GRID_WIDTH, PLAYER_GRID_TOP_MARGIN // 2)
     #     screen.blit(win_text, win_text_rect)
-
+    draw_start_button()
     pygame.display.update()
 
     if win_text is None:
@@ -100,23 +118,25 @@ game_over = False
 is_killed = True
 has_aim = False
 
+
 while run:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
         elif event.type == pygame.MOUSEBUTTONDOWN:
+            x, y = pygame.mouse.get_pos()
+
+            if not start and start_button.collidepoint(x, y) and player_grid.is_ships_placed():
+                start = True
+
             if not game_over and start:
                 if turn%2 == 0:
-                    x, y = pygame.mouse.get_pos()
-
                     if computer_grid.belongs(x, y):
                         row, col = computer_grid.get_coords(x, y)
 
                         result, not_used = computer_grid.shoot(row, col)
                         turn += result
             elif not start:
-                x, y = pygame.mouse.get_pos()
-
                 for ship in player_ships:
                     if ship.is_selected() and player_grid.belongs(x, y):
                         row, col = player_grid.get_coords(x, y)
@@ -181,6 +201,7 @@ while run:
     #
     #     pygame.display.update()
     if not start:
+        start_button = draw_start_button()
         continue
 
     if not game_over and turn % 2 == 1:
