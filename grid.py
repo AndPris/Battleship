@@ -217,11 +217,13 @@ class Grid:
         return HIT_VALUE, is_killed(row, col)  # hit
 
     def is_loose(self):
+        crashed_cells = 0
+
         for i in range(self.__size):
             for j in range(self.__size):
-                if self.__cells[i][j] == SHIP_CELL:
-                    return False
-        return True
+                if self.__cells[i][j] == CRASHED_SHIP_CELL:
+                    crashed_cells += 1
+        return crashed_cells == 20
 
     def top(self):
         return self.__top_margin

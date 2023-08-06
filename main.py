@@ -11,8 +11,8 @@ GRID_SIZE = 10
 GRID_WIDTH = 11 * (CELL_SIZE + MARGIN)
 SHIP_SIZES = [4, 3, 3, 2, 2, 2, 1, 1, 1, 1]
 
-PLAYER_GRID_RIGHT_MARGIN, PLAYER_GRID_TOP_MARGIN = (50, 120)
-COMPUTER_GRID_RIGHT_MARGIN, COMPUTER_GRID_TOP_MARGIN = (PLAYER_GRID_RIGHT_MARGIN + GRID_WIDTH + 100, PLAYER_GRID_TOP_MARGIN)
+PLAYER_GRID_LEFT_MARGIN, PLAYER_GRID_TOP_MARGIN = (50, 120)
+COMPUTER_GRID_LEFT_MARGIN, COMPUTER_GRID_TOP_MARGIN = (PLAYER_GRID_LEFT_MARGIN + GRID_WIDTH + 100, PLAYER_GRID_TOP_MARGIN)
 
 ICON = pygame.image.load("icon.png")
 screen = pygame.display.set_mode(SCREEN_SIZE)
@@ -28,7 +28,7 @@ computer_grid.randomly_place_ships(SHIP_SIZES)
 
 def draw_start_button():
     btn_top_margin = PLAYER_GRID_TOP_MARGIN
-    btn_left_margin = COMPUTER_GRID_RIGHT_MARGIN + GRID_WIDTH
+    btn_left_margin = COMPUTER_GRID_LEFT_MARGIN + GRID_WIDTH
     btn_height = CELL_SIZE*2
     btn_width = CELL_SIZE*4
 
@@ -49,20 +49,19 @@ def display_screen():
     font = pygame.font.SysFont("arial", CELL_SIZE * 2)
 
     screen.fill(BACKGROUND_COLOR)
-    computer_grid.display(screen, CELL_SIZE, MARGIN, COMPUTER_GRID_RIGHT_MARGIN, COMPUTER_GRID_TOP_MARGIN, MISS_RADIUS, CRASHED_SHIP_CELL)
-    player_grid.display(screen, CELL_SIZE, MARGIN, PLAYER_GRID_RIGHT_MARGIN, PLAYER_GRID_TOP_MARGIN, MISS_RADIUS, CRASHED_SHIP_CELL)
+    computer_grid.display(screen, CELL_SIZE, MARGIN, COMPUTER_GRID_LEFT_MARGIN, COMPUTER_GRID_TOP_MARGIN, MISS_RADIUS, CRASHED_SHIP_CELL)
+    player_grid.display(screen, CELL_SIZE, MARGIN, PLAYER_GRID_LEFT_MARGIN, PLAYER_GRID_TOP_MARGIN, MISS_RADIUS, CRASHED_SHIP_CELL)
 
-    # if computer_grid.is_loose():
-    #     win_text = font.render("You win!", True, GREEN)
-    # elif player_grid.is_loose():
-    #     win_text = font.render("Computer wins :(", True, RED)
-    #
-    # if win_text is not None:
-    #     pygame.time.wait(1000)
-    #     win_text_rect = win_text.get_rect()
-    #     win_text_rect.center = (PLAYER_GRID_RIGHT_MARGIN + GRID_WIDTH, PLAYER_GRID_TOP_MARGIN // 2)
-    #     screen.blit(win_text, win_text_rect)
-    draw_start_button()
+    if computer_grid.is_loose():
+        win_text = font.render("You win!", True, GREEN)
+    elif player_grid.is_loose():
+        win_text = font.render("Computer wins :(", True, RED)
+
+    if win_text is not None:
+        pygame.time.wait(1000)
+        win_text_rect = win_text.get_rect()
+        win_text_rect.center = ((COMPUTER_GRID_LEFT_MARGIN + GRID_WIDTH)//2, PLAYER_GRID_TOP_MARGIN // 2)
+        screen.blit(win_text, win_text_rect)
     pygame.display.update()
 
     if win_text is None:
@@ -100,7 +99,7 @@ def draw_ships(left_margin, top_margin):
 
 
 pygame.display.update()
-player_ships = draw_ships(PLAYER_GRID_RIGHT_MARGIN, PLAYER_GRID_TOP_MARGIN+GRID_WIDTH+CELL_SIZE)
+player_ships = draw_ships(PLAYER_GRID_LEFT_MARGIN, PLAYER_GRID_TOP_MARGIN+GRID_WIDTH+CELL_SIZE)
 
 
 run = True
@@ -187,7 +186,7 @@ while run:
         #     if event.key == pygame.K_SPACE:
         #         place_ships(player_grid, SHIP_SIZES)
         #         display_screen()
-        #         display_grid(player_grid, PLAYER_GRID_RIGHT_MARGIN, PLAYER_GRID_TOP_MARGIN, 2)
+        #         display_grid(player_grid, PLAYER_GRID_LEFT_MARGIN, PLAYER_GRID_TOP_MARGIN, 2)
         #         pygame.display.update()
         #         pygame.time.wait(3000)
         #         place_ships(computer_grid, SHIP_SIZES)
