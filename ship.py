@@ -2,7 +2,6 @@ import pygame.display
 
 from grid import *
 
-BLUE = (0, 0, 255)
 SELECTED_COLOR = RED
 
 CELL_SIZE = 30

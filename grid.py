@@ -7,6 +7,7 @@ BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 YELLOW = (255, 255, 0)
 GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
 
 EMPTY_CELL = 0
 MISS_CELL = 1
@@ -36,7 +37,7 @@ class Grid:
         self.__top_margin = None
         self.__width = None
 
-    def display(self, screen, cell_size, margin, left_margin, top_margin, miss_radius, show_ships):
+    def display(self, screen, cell_size, margin, left_margin, top_margin, miss_radius, show_ships = False):
         self.__cell_size = cell_size
         self.__margin = margin
         self.__left_margin = left_margin
@@ -73,9 +74,11 @@ class Grid:
 
                 if self.__cells[col][row] == MISS_CELL:
                     pygame.draw.circle(screen, BLACK, [x + cell_size // 2, y + cell_size // 2], miss_radius, 0)
-                elif self.__cells[col][row] == show_ships:
+                elif self.__cells[col][row] == CRASHED_SHIP_CELL:
                     pygame.draw.line(screen, RED, (x + 3, y + 3), (x + cell_size - 3, y + cell_size - 3), 3)
                     pygame.draw.line(screen, RED, (x + cell_size - 3, y + 3), (x + 3, y + cell_size - 3), 3)
+                elif show_ships and self.__cells[col][row] == SHIP_CELL:
+                    pygame.draw.rect(screen, BLUE, (x, y, cell_size+margin, cell_size))
 
     def is_valid_start_position(self, row, col, ship_size, orientation):
         if orientation == HORIZONTAL:  # horizontal
