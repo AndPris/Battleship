@@ -133,6 +133,11 @@ class Grid:
 
             self.place_ship(ship_row, ship_col, size, ship_orientation)
 
+    def clear(self):
+        for i in range(self.__size):
+            for j in range(self.__size):
+                self.__cells[i][j] = EMPTY_CELL
+
     def get_cell_value(self, row, col):
         return self.__cells[row][col]
 

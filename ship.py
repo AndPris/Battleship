@@ -18,18 +18,29 @@ class Ship:
         self.__color = BLUE
         self.__length = self.__size * CELL_SIZE + (self.__size - 1) * MARGIN
         self.__selected = False
+
         if self.__orientation == HORIZONTAL:
-            self.__rect = pygame.draw.rect(self.__screen, self.__color, (self.__left_margin, self.__top_margin, self.__length, CELL_SIZE))
+            self.__surf = pygame.Surface((self.__length, CELL_SIZE))
         else:
-            self.__rect = pygame.draw.rect(self.__screen, self.__color, (self.__left_margin, self.__top_margin, CELL_SIZE, self.__length))
+            self.__surf = pygame.Surface((CELL_SIZE, self.__length))
+
+        self.__surf.fill(self.__color)
+        self.__rect = self.__surf.get_rect()
+        self.__rect.left = self.__left_margin
+        self.__rect.top = self.__top_margin
+        # if self.__orientation == HORIZONTAL:
+        #     self.__rect = pygame.draw.rect(self.__screen, self.__color, (self.__left_margin, self.__top_margin, self.__length, CELL_SIZE))
+        # else:
+        #     self.__rect = pygame.draw.rect(self.__screen, self.__color, (self.__left_margin, self.__top_margin, CELL_SIZE, self.__length))
         pygame.display.update()
 
     def display(self):
 
-        if self.__orientation == HORIZONTAL:
-            pygame.draw.rect(self.__screen, self.__color, (self.__left_margin, self.__top_margin, self.__length, CELL_SIZE))
-        else:
-            pygame.draw.rect(self.__screen, self.__color, (self.__left_margin, self.__top_margin, CELL_SIZE, self.__length))
+        self.__screen.blit(self.__surf, [self.__left_margin, self.__top_margin])
+        # if self.__orientation == HORIZONTAL:
+        #     pygame.draw.rect(self.__screen, self.__color, (self.__left_margin, self.__top_margin, self.__length, CELL_SIZE))
+        # else:
+        #     pygame.draw.rect(self.__screen, self.__color, (self.__left_margin, self.__top_margin, CELL_SIZE, self.__length))
 
         # self.__rect.move(self.__left_margin, self.__top_margin)
         pygame.display.update()
@@ -53,11 +64,13 @@ class Ship:
     def select(self):
         self.__selected = True
         self.__color = SELECTED_COLOR
+        self.__surf.fill(self.__color)
         self.display()
 
     def undo_selection(self):
         self.__selected = False
         self.__color = BLUE
+        self.__surf.fill(self.__color)
         self.display()
 
     def belongs(self, x, y):
@@ -79,3 +92,17 @@ class Ship:
 
     def set_top(self, top_margin):
         self.__top_margin = top_margin
+
+    def turn(self):
+        if self.__orientation == HORIZONTAL:
+            self.__orientation = VERTICAL
+            self.__surf = pygame.transform.rotate(self.__surf, 90)
+            # self.__rect = pygame.draw.rect(self.__screen, self.__color,
+            #                                (self.__left_margin, self.__top_margin, CELL_SIZE, self.__length))
+
+        else:
+            self.__orientation = HORIZONTAL
+            self.__surf = pygame.transform.rotate(self.__surf, -90)
+
+            # self.__rect = pygame.draw.rect(self.__screen, self.__color, (self.__left_margin, self.__top_margin, self.__length, CELL_SIZE))
+
