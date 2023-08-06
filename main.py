@@ -29,14 +29,14 @@ computer_grid.randomly_place_ships(SHIP_SIZES)
 def draw_ships(left_margin, top_margin):
     four_deck_ship1 = Ship(screen, left_margin, top_margin, 4)
 
-    three_deck_ship1 = Ship(screen, four_deck_ship1.left(), four_deck_ship1.bottom()+SHIP_MARGIN, 3)
+    three_deck_ship1 = Ship(screen, four_deck_ship1.right() + SHIP_MARGIN, four_deck_ship1.top(), 3)
     three_deck_ship2 = Ship(screen, three_deck_ship1.right()+SHIP_MARGIN, three_deck_ship1.top(), 3)
 
-    two_deck_ship1 = Ship(screen, four_deck_ship1.left(), three_deck_ship1.bottom()+SHIP_MARGIN, 2)
+    two_deck_ship1 = Ship(screen, three_deck_ship2.right()+SHIP_MARGIN, three_deck_ship2.top(), 2)
     two_deck_ship2 = Ship(screen, two_deck_ship1.right()+SHIP_MARGIN, two_deck_ship1.top(), 2)
     two_deck_ship3 = Ship(screen, two_deck_ship2.right()+SHIP_MARGIN, two_deck_ship1.top(), 2)
 
-    one_deck_ship1 = Ship(screen, four_deck_ship1.left(), two_deck_ship1.bottom()+SHIP_MARGIN, 1)
+    one_deck_ship1 = Ship(screen, two_deck_ship3.right() + SHIP_MARGIN, two_deck_ship1.top(), 1)
     one_deck_ship2 = Ship(screen, one_deck_ship1.right()+SHIP_MARGIN, one_deck_ship1.top(), 1)
     one_deck_ship3 = Ship(screen, one_deck_ship2.right()+SHIP_MARGIN, one_deck_ship1.top(), 1)
     one_deck_ship4 = Ship(screen, one_deck_ship3.right()+SHIP_MARGIN, one_deck_ship1.top(), 1)

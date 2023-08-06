@@ -106,3 +106,5 @@ class Ship:
 
             # self.__rect = pygame.draw.rect(self.__screen, self.__color, (self.__left_margin, self.__top_margin, self.__length, CELL_SIZE))
 
+    def length(self):
+        return self.__length
