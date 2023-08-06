@@ -115,7 +115,6 @@ def clear():
     display_screen()
     player_ships = draw_ships(PLAYER_GRID_LEFT_MARGIN, PLAYER_GRID_TOP_MARGIN+GRID_WIDTH+CELL_SIZE)
 
-
 start_buttons = []
 start_button = Button(screen, COMPUTER_GRID_LEFT_MARGIN + GRID_WIDTH, PLAYER_GRID_TOP_MARGIN, CELL_SIZE*4, CELL_SIZE*2, "Start", start_game)
 random_place_ships_button = Button(screen, start_button.x, start_button.y + start_button.height + SHIP_MARGIN, start_button.width, start_button.height, "Random", randomly_place_players_ships)
@@ -152,7 +151,10 @@ while run:
                             display_screen()
                             for ship2 in player_ships:
                                 ship2.undo_selection()
+                            player_ships.remove(ship)
                     elif ship.belongs(x, y) and not player_grid.belongs(x, y):
+                        for ship2 in player_ships:
+                            ship2.undo_selection()
                         ship.select()
                     else:
                         ship.undo_selection()
@@ -193,6 +195,14 @@ while run:
                     #         ship.undo_selection()
 
     if not start:
+        is_selected_available = False
+        for ship in player_ships:
+            if ship.is_selected():
+                is_selected_available = True
+                break
+        if not is_selected_available and len(player_ships) != 0:
+            player_ships[0].select()
+
         display_ships(player_ships)
         for btn in start_buttons:
             btn.process()
