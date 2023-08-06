@@ -1,5 +1,3 @@
-import pygame.display
-
 from grid import *
 
 SELECTED_COLOR = RED

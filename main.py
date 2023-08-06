@@ -4,6 +4,9 @@ from button import *
 
 pygame.init()
 
+GAME_WITH_COMPUTER = "single"
+GAME_WITH_FRIEND = "multiplayer"
+
 SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 700
 SCREEN_SIZE = (SCREEN_WIDTH, SCREEN_HEIGHT)
@@ -13,13 +16,14 @@ SHIP_SIZES = [4, 3, 3, 2, 2, 2, 1, 1, 1, 1]
 SHIP_MARGIN = 5
 
 PLAYER_GRID_LEFT_MARGIN, PLAYER_GRID_TOP_MARGIN = (50, 120)
-COMPUTER_GRID_LEFT_MARGIN, COMPUTER_GRID_TOP_MARGIN = (PLAYER_GRID_LEFT_MARGIN + GRID_WIDTH + 100, PLAYER_GRID_TOP_MARGIN)
+COMPUTER_GRID_LEFT_MARGIN, COMPUTER_GRID_TOP_MARGIN = (
+    PLAYER_GRID_LEFT_MARGIN + GRID_WIDTH + 100, PLAYER_GRID_TOP_MARGIN)
 
 ICON = pygame.image.load("icon.png")
 screen = pygame.display.set_mode(SCREEN_SIZE)
 pygame.display.set_caption("Battleship")
 pygame.display.set_icon(ICON)
-
+screen.fill(BACKGROUND_COLOR)
 
 player_grid = Grid(GRID_SIZE, "You")
 computer_grid = Grid(GRID_SIZE, "Computer")
@@ -30,16 +34,16 @@ def draw_ships(left_margin, top_margin):
     four_deck_ship1 = Ship(screen, left_margin, top_margin, 4)
 
     three_deck_ship1 = Ship(screen, four_deck_ship1.right() + SHIP_MARGIN, four_deck_ship1.top(), 3)
-    three_deck_ship2 = Ship(screen, three_deck_ship1.right()+SHIP_MARGIN, three_deck_ship1.top(), 3)
+    three_deck_ship2 = Ship(screen, three_deck_ship1.right() + SHIP_MARGIN, three_deck_ship1.top(), 3)
 
-    two_deck_ship1 = Ship(screen, three_deck_ship2.right()+SHIP_MARGIN, three_deck_ship2.top(), 2)
-    two_deck_ship2 = Ship(screen, two_deck_ship1.right()+SHIP_MARGIN, two_deck_ship1.top(), 2)
-    two_deck_ship3 = Ship(screen, two_deck_ship2.right()+SHIP_MARGIN, two_deck_ship1.top(), 2)
+    two_deck_ship1 = Ship(screen, three_deck_ship2.right() + SHIP_MARGIN, three_deck_ship2.top(), 2)
+    two_deck_ship2 = Ship(screen, two_deck_ship1.right() + SHIP_MARGIN, two_deck_ship1.top(), 2)
+    two_deck_ship3 = Ship(screen, two_deck_ship2.right() + SHIP_MARGIN, two_deck_ship1.top(), 2)
 
     one_deck_ship1 = Ship(screen, two_deck_ship3.right() + SHIP_MARGIN, two_deck_ship1.top(), 1)
-    one_deck_ship2 = Ship(screen, one_deck_ship1.right()+SHIP_MARGIN, one_deck_ship1.top(), 1)
-    one_deck_ship3 = Ship(screen, one_deck_ship2.right()+SHIP_MARGIN, one_deck_ship1.top(), 1)
-    one_deck_ship4 = Ship(screen, one_deck_ship3.right()+SHIP_MARGIN, one_deck_ship1.top(), 1)
+    one_deck_ship2 = Ship(screen, one_deck_ship1.right() + SHIP_MARGIN, one_deck_ship1.top(), 1)
+    one_deck_ship3 = Ship(screen, one_deck_ship2.right() + SHIP_MARGIN, one_deck_ship1.top(), 1)
+    one_deck_ship4 = Ship(screen, one_deck_ship3.right() + SHIP_MARGIN, one_deck_ship1.top(), 1)
 
     ships = [four_deck_ship1, three_deck_ship1, three_deck_ship2, two_deck_ship1, two_deck_ship2, two_deck_ship3,
              one_deck_ship1, one_deck_ship2, one_deck_ship3, one_deck_ship4]
@@ -47,7 +51,7 @@ def draw_ships(left_margin, top_margin):
     return ships
 
 
-player_ships = draw_ships(PLAYER_GRID_LEFT_MARGIN, PLAYER_GRID_TOP_MARGIN+GRID_WIDTH+CELL_SIZE)
+player_ships = draw_ships(PLAYER_GRID_LEFT_MARGIN, PLAYER_GRID_TOP_MARGIN + GRID_WIDTH + CELL_SIZE)
 
 
 def display_ships(ships):
@@ -69,9 +73,8 @@ def display_screen():
         win_text = font.render("Computer wins :(", True, RED)
 
     if win_text is not None:
-        # pygame.time.wait(1000)
         win_text_rect = win_text.get_rect()
-        win_text_rect.center = ((COMPUTER_GRID_LEFT_MARGIN + GRID_WIDTH)//2, PLAYER_GRID_TOP_MARGIN // 2)
+        win_text_rect.center = ((COMPUTER_GRID_LEFT_MARGIN + GRID_WIDTH) // 2, PLAYER_GRID_TOP_MARGIN // 2)
         screen.blit(win_text, win_text_rect)
 
     pygame.display.update()
@@ -81,12 +84,39 @@ def display_screen():
     return True
 
 
+game_mode = None
 
-display_screen()
+welcome_buttons = []
 
 
-pygame.display.update()
+def set_single_mode():
+    global game_mode
+    game_mode = GAME_WITH_COMPUTER
+    welcome_buttons.clear()
+    display_screen()
+    pygame.display.update()
 
+
+
+def set_multiplayer_mode():
+    pass
+    # global game_mode
+    # game_mode = GAME_WITH_FRIEND
+
+
+WELCOME_BUTTON_WIDTH = CELL_SIZE * 8
+WELCOME_BUTTON_HEIGHT = CELL_SIZE * 4
+
+single_mode_button = Button(screen, (SCREEN_WIDTH - WELCOME_BUTTON_WIDTH) // 2,
+                            SCREEN_HEIGHT // 2 - WELCOME_BUTTON_HEIGHT,
+                            WELCOME_BUTTON_WIDTH, WELCOME_BUTTON_HEIGHT, 35,
+                            "Play with computer", set_single_mode)
+multiplayer_mode_buttons = Button(screen, single_mode_button.x,
+                                  single_mode_button.y + single_mode_button.height + CELL_SIZE,
+                                  WELCOME_BUTTON_WIDTH, WELCOME_BUTTON_HEIGHT, 18,
+                                  "Play with friend (not implemented)", set_multiplayer_mode)
+welcome_buttons.append(single_mode_button)
+welcome_buttons.append(multiplayer_mode_buttons)
 
 run = True
 start = False
@@ -113,12 +143,19 @@ def clear():
     global player_ships
     player_grid.clear()
     display_screen()
-    player_ships = draw_ships(PLAYER_GRID_LEFT_MARGIN, PLAYER_GRID_TOP_MARGIN+GRID_WIDTH+CELL_SIZE)
+    player_ships = draw_ships(PLAYER_GRID_LEFT_MARGIN, PLAYER_GRID_TOP_MARGIN + GRID_WIDTH + CELL_SIZE)
 
+
+font_size = 25
 start_buttons = []
-start_button = Button(screen, COMPUTER_GRID_LEFT_MARGIN + GRID_WIDTH, PLAYER_GRID_TOP_MARGIN, CELL_SIZE*4, CELL_SIZE*2, "Start", start_game)
-random_place_ships_button = Button(screen, start_button.x, start_button.y + start_button.height + SHIP_MARGIN, start_button.width, start_button.height, "Random", randomly_place_players_ships)
-clear_button = Button(screen, random_place_ships_button.x, random_place_ships_button.y + random_place_ships_button.height + SHIP_MARGIN, random_place_ships_button.width, random_place_ships_button.height, "Clear", clear)
+start_button = Button(screen, COMPUTER_GRID_LEFT_MARGIN + GRID_WIDTH, PLAYER_GRID_TOP_MARGIN, CELL_SIZE * 4,
+                      CELL_SIZE * 2, font_size, "Start", start_game)
+random_place_ships_button = Button(screen, start_button.x, start_button.y + start_button.height + SHIP_MARGIN,
+                                   start_button.width, start_button.height, font_size, "Random",
+                                   randomly_place_players_ships)
+clear_button = Button(screen, random_place_ships_button.x,
+                      random_place_ships_button.y + random_place_ships_button.height + SHIP_MARGIN,
+                      random_place_ships_button.width, random_place_ships_button.height, font_size, "Clear", clear)
 
 start_buttons.append(start_button)
 start_buttons.append(random_place_ships_button)
@@ -128,11 +165,21 @@ while run:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
-        elif event.type == pygame.MOUSEBUTTONDOWN:
+
+        if game_mode is None:
+            for button in welcome_buttons:
+                button.process()
+                pygame.display.update()
+
+            if game_mode is not None:
+                display_screen()
+            continue
+
+        if event.type == pygame.MOUSEBUTTONDOWN:
             x, y = pygame.mouse.get_pos()
 
             if not game_over and start:
-                if turn%2 == 0:
+                if turn % 2 == 0:
                     if computer_grid.belongs(x, y):
                         row, col = computer_grid.get_coords(x, y)
 
@@ -164,35 +211,8 @@ while run:
                     ship.turn()
                 display_screen()
 
-                    # if ship.is_selected() and player_grid.belongs(x, y):
-                    #     for ship2 in player_ships:
-                    #         if ship2.belongs(x, y):
-                    #             ship2.select()
-                    #             ship.undo_selection()
-                    #
-                    #     row, col = player_grid.get_coords(x, y)
-                    #
-                    #     if player_grid.is_valid_start_position(row, col, ship.get_size(), ship.get_orientation()):
-                    #         player_grid.place_ship(row, col, ship.get_size(), ship.get_orientation())
-                    #         precise_x, precise_y = player_grid.get_precise_coords(x, y)
-                    #         ship.set_left(precise_x)
-                    #         ship.set_top(precise_y)
-                    #         display_screen()
-                    #         for ship2 in player_ships:
-                    #             ship2.undo_selection()
-                    #     else:
-                    #         ship.undo_selection()
-                    # else:
-                    #     if ship.belongs(x, y):
-                    #         if player_grid.belongs(x, y):
-                    #             for i in range(ship.get_size()):
-                    #                 if ship.get_orientation() == HORIZONTAL:
-                    #                     player_grid.set_cell_value(row, col + i, EMPTY_CELL)
-                    #                 else:
-                    #                     player_grid.set_cell_value(row + i, col, EMPTY_CELL)
-                    #         ship.select()
-                    #     else:
-                    #         ship.undo_selection()
+    if game_mode is None:
+        continue
 
     if not start:
         is_selected_available = False

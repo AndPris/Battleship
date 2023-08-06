@@ -1,6 +1,5 @@
 from grid import *
 
-
 def generate_coords(grid_size):
     row = random.randint(0, grid_size-1)
     col = random.randint(0, grid_size-1)

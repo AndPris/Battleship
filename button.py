@@ -4,17 +4,18 @@ import pygame
 
 
 class Button:
-    def __init__(self, screen, x, y, width, height, text='Button', onclick_function=None):
+    def __init__(self, screen, x, y, width, height, font_size, text='Button', onclick_function=None):
         self.screen = screen
         self.x = x
         self.y = y
         self.width = width
         self.height = height
+        self.font_size = font_size
         self.text = text
         self.onclick_function = onclick_function
         self.already_pressed = False
 
-        self.font = pygame.font.SysFont('Arial', min(int(self.height * 0.75), int(self.width/len(self.text))))
+        self.font = pygame.font.SysFont('Arial', self.font_size)
 
         self.fill_colors = {
             'normal': '#ffffff',
@@ -44,7 +45,6 @@ class Button:
                     self.already_pressed = True
             else:
                 self.already_pressed = False
-
 
         self.button_surface.blit(self.button_label, [
             self.button_rect.width / 2 - self.button_label.get_rect().width / 2,
