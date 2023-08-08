@@ -1,3 +1,5 @@
+import pygame
+
 from shoot_logic import *
 from ship import *
 from button import *
@@ -7,7 +9,7 @@ pygame.init()
 GAME_WITH_COMPUTER = "single"
 GAME_WITH_FRIEND = "multiplayer"
 
-SCREEN_WIDTH = 1000
+SCREEN_WIDTH = 1100
 SCREEN_HEIGHT = 700
 SCREEN_SIZE = (SCREEN_WIDTH, SCREEN_HEIGHT)
 GRID_SIZE = 10
@@ -17,7 +19,7 @@ SHIP_MARGIN = 5
 
 PLAYER_GRID_LEFT_MARGIN, PLAYER_GRID_TOP_MARGIN = (50, 120)
 COMPUTER_GRID_LEFT_MARGIN, COMPUTER_GRID_TOP_MARGIN = (
-    PLAYER_GRID_LEFT_MARGIN + GRID_WIDTH + 100, PLAYER_GRID_TOP_MARGIN)
+    PLAYER_GRID_LEFT_MARGIN + GRID_WIDTH + 150, PLAYER_GRID_TOP_MARGIN)
 
 ICON = pygame.image.load("icon.png")
 screen = pygame.display.set_mode(SCREEN_SIZE)
@@ -60,7 +62,8 @@ def display_ships(ships):
 
 
 def display_screen():
-    win_text = None
+    if not game_over:
+        win_text = None
     font = pygame.font.SysFont("arial", CELL_SIZE * 2)
 
     screen.fill(BACKGROUND_COLOR)
@@ -73,9 +76,16 @@ def display_screen():
         win_text = font.render("Computer wins :(", True, RED)
 
     if win_text is not None:
+        restart_text = font.render("Press space to restart game", True, BLUE)
+        restart_text_rect = restart_text.get_rect()
+
         win_text_rect = win_text.get_rect()
         win_text_rect.center = ((COMPUTER_GRID_LEFT_MARGIN + GRID_WIDTH) // 2, PLAYER_GRID_TOP_MARGIN // 2)
+        restart_text_rect.center = (win_text_rect.centerx, PLAYER_GRID_TOP_MARGIN+GRID_WIDTH+50)
+        screen.blit(restart_text, restart_text_rect)
         screen.blit(win_text, win_text_rect)
+        computer_grid.display(screen, CELL_SIZE, MARGIN, COMPUTER_GRID_LEFT_MARGIN, COMPUTER_GRID_TOP_MARGIN,
+                              MISS_RADIUS, True)
 
     pygame.display.update()
 
@@ -93,9 +103,6 @@ def set_single_mode():
     global game_mode
     game_mode = GAME_WITH_COMPUTER
     welcome_buttons.clear()
-    display_screen()
-    pygame.display.update()
-
 
 
 def set_multiplayer_mode():
@@ -205,10 +212,20 @@ while run:
                         ship.select()
                     else:
                         ship.undo_selection()
-        elif event.type == pygame.KEYDOWN and event.key == pygame.K_RIGHT:
-            for ship in player_ships:
-                if ship.is_selected():
-                    ship.turn()
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_RIGHT:
+                for ship in player_ships:
+                    if ship.is_selected():
+                        ship.turn()
+                    display_screen()
+            elif event.key == pygame.K_SPACE and game_over:
+                player_grid.clear()
+                computer_grid.clear()
+                computer_grid.randomly_place_ships(SHIP_SIZES)
+
+                start = False
+                game_over = False
+                player_ships = draw_ships(PLAYER_GRID_LEFT_MARGIN, PLAYER_GRID_TOP_MARGIN + GRID_WIDTH + CELL_SIZE)
                 display_screen()
 
     if game_mode is None:

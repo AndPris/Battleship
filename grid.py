@@ -1,7 +1,7 @@
 import pygame
 import random
 
-BACKGROUND_COLOR = (23, 227, 193)
+BACKGROUND_COLOR = (255, 106, 7)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
