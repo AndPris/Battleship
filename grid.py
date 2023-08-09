@@ -1,7 +1,7 @@
 import pygame
 import random
 
-BACKGROUND_COLOR = (255, 106, 7)
+BACKGROUND_COLOR = (179, 215, 212)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
@@ -284,3 +284,6 @@ class Grid:
                     counted_ship_cells += 1
 
         return counted_ship_cells == 20
+
+    def set_title(self, title):
+        self.__title = title

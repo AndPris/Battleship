@@ -29,7 +29,10 @@ screen.fill(BACKGROUND_COLOR)
 
 player_grid = Grid(GRID_SIZE, "You")
 computer_grid = Grid(GRID_SIZE, "Computer")
-computer_grid.randomly_place_ships(SHIP_SIZES)
+
+game_mode = None
+FIRST_PLAYER = 0; SECOND_PLAYER = 1
+ships_placement_queue = FIRST_PLAYER  # 0 - first player, 1 - second
 
 
 def draw_ships(left_margin, top_margin):
@@ -61,19 +64,27 @@ def display_ships(ships):
         ship.display()
 
 
-def display_screen():
+def display_screen(show_player_ships=False, show_computer_ships=False):
     if not game_over:
         win_text = None
     font = pygame.font.SysFont("arial", CELL_SIZE * 2)
 
     screen.fill(BACKGROUND_COLOR)
-    computer_grid.display(screen, CELL_SIZE, MARGIN, COMPUTER_GRID_LEFT_MARGIN, COMPUTER_GRID_TOP_MARGIN, MISS_RADIUS)
-    player_grid.display(screen, CELL_SIZE, MARGIN, PLAYER_GRID_LEFT_MARGIN, PLAYER_GRID_TOP_MARGIN, MISS_RADIUS, True)
+    computer_grid.display(screen, CELL_SIZE, MARGIN, COMPUTER_GRID_LEFT_MARGIN, COMPUTER_GRID_TOP_MARGIN, MISS_RADIUS, show_computer_ships)
 
-    if computer_grid.is_loose():
-        win_text = font.render("You win!", True, GREEN)
-    elif player_grid.is_loose():
-        win_text = font.render("Computer wins :(", True, RED)
+    if game_mode == GAME_WITH_COMPUTER:
+        player_grid.display(screen, CELL_SIZE, MARGIN, PLAYER_GRID_LEFT_MARGIN, PLAYER_GRID_TOP_MARGIN, MISS_RADIUS,
+                            True)
+        if computer_grid.is_loose():
+            win_text = font.render("You win!", True, (15, 101, 20))
+        elif player_grid.is_loose():
+            win_text = font.render("Computer wins :(", True, RED)
+    elif game_mode == GAME_WITH_FRIEND:
+        player_grid.display(screen, CELL_SIZE, MARGIN, PLAYER_GRID_LEFT_MARGIN, PLAYER_GRID_TOP_MARGIN, MISS_RADIUS, show_player_ships)
+        if computer_grid.is_loose():
+            win_text = font.render("Player 1 wins!", True, (15, 101, 20))
+        elif player_grid.is_loose():
+            win_text = font.render("Player 2 wins!", True, RED)
 
     if win_text is not None:
         restart_text = font.render("Press space to restart game", True, BLUE)
@@ -86,6 +97,8 @@ def display_screen():
         screen.blit(win_text, win_text_rect)
         computer_grid.display(screen, CELL_SIZE, MARGIN, COMPUTER_GRID_LEFT_MARGIN, COMPUTER_GRID_TOP_MARGIN,
                               MISS_RADIUS, True)
+        player_grid.display(screen, CELL_SIZE, MARGIN, PLAYER_GRID_LEFT_MARGIN, PLAYER_GRID_TOP_MARGIN, MISS_RADIUS, True)
+
 
     pygame.display.update()
 
@@ -93,37 +106,6 @@ def display_screen():
         return False
     return True
 
-
-game_mode = None
-
-welcome_buttons = []
-
-
-def set_single_mode():
-    global game_mode
-    game_mode = GAME_WITH_COMPUTER
-    welcome_buttons.clear()
-
-
-def set_multiplayer_mode():
-    pass
-    # global game_mode
-    # game_mode = GAME_WITH_FRIEND
-
-
-WELCOME_BUTTON_WIDTH = CELL_SIZE * 8
-WELCOME_BUTTON_HEIGHT = CELL_SIZE * 4
-
-single_mode_button = Button(screen, (SCREEN_WIDTH - WELCOME_BUTTON_WIDTH) // 2,
-                            SCREEN_HEIGHT // 2 - WELCOME_BUTTON_HEIGHT,
-                            WELCOME_BUTTON_WIDTH, WELCOME_BUTTON_HEIGHT, 35,
-                            "Play with computer", set_single_mode)
-multiplayer_mode_buttons = Button(screen, single_mode_button.x,
-                                  single_mode_button.y + single_mode_button.height + CELL_SIZE,
-                                  WELCOME_BUTTON_WIDTH, WELCOME_BUTTON_HEIGHT, 18,
-                                  "Play with friend (not implemented)", set_multiplayer_mode)
-welcome_buttons.append(single_mode_button)
-welcome_buttons.append(multiplayer_mode_buttons)
 
 run = True
 start = False
@@ -135,22 +117,90 @@ has_aim = False
 
 def start_game():
     global start
-    if player_grid.is_ships_placed():
+    if player_grid.is_ships_placed() and computer_grid.is_ships_placed():
         start = True
 
 
 def randomly_place_players_ships():
-    player_grid.clear()
-    player_grid.randomly_place_ships(SHIP_SIZES)
-    display_screen()
+    if ships_placement_queue == FIRST_PLAYER:
+        player_grid.clear()
+        player_grid.randomly_place_ships(SHIP_SIZES)
+        display_screen(True)
+    else:
+        computer_grid.clear()
+        computer_grid.randomly_place_ships(SHIP_SIZES)
+        display_screen(False, True)
+
     player_ships.clear()
 
 
 def clear():
     global player_ships
-    player_grid.clear()
+    if ships_placement_queue == FIRST_PLAYER:
+        player_grid.clear()
+    else:
+        computer_grid.clear()
     display_screen()
     player_ships = draw_ships(PLAYER_GRID_LEFT_MARGIN, PLAYER_GRID_TOP_MARGIN + GRID_WIDTH + CELL_SIZE)
+
+
+def place_ships(ships, grid, x, y, show_player=False, show_computer=False):
+    for ship in ships:
+        if ship.is_selected() and grid.belongs(x, y):
+            row, col = grid.get_coords(x, y)
+
+            if grid.is_valid_start_position(row, col, ship.get_size(), ship.get_orientation()):
+                grid.place_ship(row, col, ship.get_size(), ship.get_orientation())
+                precise_x, precise_y = grid.get_precise_coords(x, y)
+                ship.set_left(precise_x)
+                ship.set_top(precise_y)
+                display_screen(show_player, show_computer)
+                for ship2 in ships:
+                    ship2.undo_selection()
+                ships.remove(ship)
+        elif ship.belongs(x, y) and not grid.belongs(x, y):
+            for ship2 in ships:
+                ship2.undo_selection()
+            ship.select()
+        else:
+            ship.undo_selection()
+
+
+def turn_ship(ships):
+    for ship in ships:
+        if ship.is_selected():
+            ship.turn()
+
+        if ships_placement_queue == FIRST_PLAYER:
+            display_screen(True)
+        else:
+            display_screen(False, True)
+
+
+def auto_select_ship(ships):
+    is_selected_available = False
+    for ship in ships:
+        if ship.is_selected():
+            is_selected_available = True
+            break
+    if not is_selected_available and len(ships) != 0:
+        ships[0].select()
+
+    display_ships(ships)
+
+
+def process_buttons(buttons):
+    for btn in buttons:
+        btn.process()
+    pygame.display.update()
+
+
+def human_shoot(grid):
+    global turn
+    row, col = grid.get_coords(x, y)
+
+    result, not_used = grid.shoot(row, col)
+    turn += result
 
 
 font_size = 25
@@ -168,99 +218,136 @@ start_buttons.append(start_button)
 start_buttons.append(random_place_ships_button)
 start_buttons.append(clear_button)
 
+
+welcome_buttons = []
+
+
+def set_single_mode():
+    global game_mode
+    game_mode = GAME_WITH_COMPUTER
+    computer_grid.randomly_place_ships(SHIP_SIZES)
+    welcome_buttons.clear()
+
+
+def next_player():
+    global ships_placement_queue, player_ships, player_grid
+    if ships_placement_queue == SECOND_PLAYER or not player_grid.is_ships_placed():
+        return
+
+    ships_placement_queue = SECOND_PLAYER
+    player_ships = draw_ships(PLAYER_GRID_LEFT_MARGIN, PLAYER_GRID_TOP_MARGIN + GRID_WIDTH + CELL_SIZE)
+    display_screen()
+
+
+def set_multiplayer_mode():
+    global game_mode, start_buttons
+    player_grid.set_title("Player 1")
+    computer_grid.set_title("Player 2")
+    game_mode = GAME_WITH_FRIEND
+    next_button = Button(screen, clear_button.x,
+                      clear_button.y + clear_button.height + SHIP_MARGIN,
+                      clear_button.width, clear_button.height, font_size, "Next", next_player)
+    start_buttons.append(next_button)
+    welcome_buttons.clear()
+
+
+WELCOME_BUTTON_WIDTH = CELL_SIZE * 8
+WELCOME_BUTTON_HEIGHT = CELL_SIZE * 4
+
+single_mode_button = Button(screen, (SCREEN_WIDTH - WELCOME_BUTTON_WIDTH) // 2,
+                            SCREEN_HEIGHT // 2 - WELCOME_BUTTON_HEIGHT,
+                            WELCOME_BUTTON_WIDTH, WELCOME_BUTTON_HEIGHT, 35,
+                            "Play with computer", set_single_mode)
+multiplayer_mode_buttons = Button(screen, single_mode_button.x,
+                                  single_mode_button.y + single_mode_button.height + CELL_SIZE,
+                                  WELCOME_BUTTON_WIDTH, WELCOME_BUTTON_HEIGHT, 35,
+                                  "Play with friend", set_multiplayer_mode)
+welcome_buttons.append(single_mode_button)
+welcome_buttons.append(multiplayer_mode_buttons)
+
 while run:
+    if game_mode is None:
+        process_buttons(welcome_buttons)
+
+        if game_mode is not None:
+            display_screen()
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
+        if game_mode == GAME_WITH_COMPUTER:
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                x, y = pygame.mouse.get_pos()
 
-        if game_mode is None:
-            for button in welcome_buttons:
-                button.process()
-                pygame.display.update()
+                if not game_over and start:
+                    if turn % 2 == 0 and computer_grid.belongs(x, y):
+                        human_shoot(computer_grid)
+                elif not start:
+                    place_ships(player_ships, player_grid, x, y)
+            elif event.type == pygame.KEYDOWN:
+                if not start and event.key == pygame.K_RIGHT:
+                    turn_ship(player_ships)
+                elif event.key == pygame.K_SPACE and game_over:
+                    player_grid.clear()
+                    computer_grid.clear()
+                    computer_grid.randomly_place_ships(SHIP_SIZES)
 
-            if game_mode is not None:
-                display_screen()
-            continue
-
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            x, y = pygame.mouse.get_pos()
-
-            if not game_over and start:
-                if turn % 2 == 0:
-                    if computer_grid.belongs(x, y):
-                        row, col = computer_grid.get_coords(x, y)
-
-                        result, not_used = computer_grid.shoot(row, col)
-                        turn += result
-            elif not start:
-                for ship in player_ships:
-                    if ship.is_selected() and player_grid.belongs(x, y):
-                        row, col = player_grid.get_coords(x, y)
-
-                        if player_grid.is_valid_start_position(row, col, ship.get_size(), ship.get_orientation()):
-                            player_grid.place_ship(row, col, ship.get_size(), ship.get_orientation())
-                            precise_x, precise_y = player_grid.get_precise_coords(x, y)
-                            ship.set_left(precise_x)
-                            ship.set_top(precise_y)
-                            display_screen()
-                            for ship2 in player_ships:
-                                ship2.undo_selection()
-                            player_ships.remove(ship)
-                    elif ship.belongs(x, y) and not player_grid.belongs(x, y):
-                        for ship2 in player_ships:
-                            ship2.undo_selection()
-                        ship.select()
-                    else:
-                        ship.undo_selection()
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_RIGHT:
-                for ship in player_ships:
-                    if ship.is_selected():
-                        ship.turn()
+                    start = False
+                    game_over = False
+                    turn = 0
+                    player_ships = draw_ships(PLAYER_GRID_LEFT_MARGIN, PLAYER_GRID_TOP_MARGIN + GRID_WIDTH + CELL_SIZE)
                     display_screen()
-            elif event.key == pygame.K_SPACE and game_over:
-                player_grid.clear()
-                computer_grid.clear()
-                computer_grid.randomly_place_ships(SHIP_SIZES)
+        elif game_mode == GAME_WITH_FRIEND:
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                x, y = pygame.mouse.get_pos()
 
-                start = False
-                game_over = False
-                player_ships = draw_ships(PLAYER_GRID_LEFT_MARGIN, PLAYER_GRID_TOP_MARGIN + GRID_WIDTH + CELL_SIZE)
-                display_screen()
+                if not game_over and start:
+                    if turn % 2 == 0 and computer_grid.belongs(x, y):
+                        human_shoot(computer_grid)
+                    elif turn % 2 == 1 and player_grid.belongs(x, y):
+                        human_shoot(player_grid)
+                elif not start:
+                    if ships_placement_queue == FIRST_PLAYER:
+                        place_ships(player_ships, player_grid, x, y, True)
+                    else:
+                        place_ships(player_ships, computer_grid, x, y, False, True)
+            elif event.type == pygame.KEYDOWN:
+                if not start and event.key == pygame.K_RIGHT:
+                    turn_ship(player_ships)
+                elif event.key == pygame.K_SPACE and game_over:
+                    player_grid.clear()
+                    computer_grid.clear()
+
+                    ships_placement_queue = FIRST_PLAYER
+                    start = False
+                    game_over = False
+                    turn = 0
+                    player_ships = draw_ships(PLAYER_GRID_LEFT_MARGIN, PLAYER_GRID_TOP_MARGIN + GRID_WIDTH + CELL_SIZE)
+                    display_screen()
 
     if game_mode is None:
         continue
 
     if not start:
-        is_selected_available = False
-        for ship in player_ships:
-            if ship.is_selected():
-                is_selected_available = True
-                break
-        if not is_selected_available and len(player_ships) != 0:
-            player_ships[0].select()
-
-        display_ships(player_ships)
-        for btn in start_buttons:
-            btn.process()
-        pygame.display.update()
+        auto_select_ship(player_ships)
+        process_buttons(start_buttons)
         continue
 
-    if not game_over and turn % 2 == 1:
-        # pygame.time.wait(300)
-        if not has_aim:
-            row, col = generate_coords(GRID_SIZE)
-            result, is_killed = player_grid.shoot(row, col)
-            if result == HIT_VALUE and not is_killed:
-                anchor_row, anchor_col = row, col
-                has_aim = True
-        else:
-            row, col = smart_generate_coords(player_grid, anchor_row, anchor_col, GRID_SIZE)
-            result, is_killed = player_grid.shoot(row, col)
+    if game_mode == GAME_WITH_COMPUTER:
+        if not game_over and turn % 2 == 1:
+            if not has_aim:
+                row, col = generate_coords(GRID_SIZE)
+                result, is_killed = player_grid.shoot(row, col)
+                if result == HIT_VALUE and not is_killed:
+                    anchor_row, anchor_col = row, col
+                    has_aim = True
+            else:
+                row, col = smart_generate_coords(player_grid, anchor_row, anchor_col, GRID_SIZE)
+                result, is_killed = player_grid.shoot(row, col)
 
-            if is_killed:
-                has_aim = False
+                if is_killed:
+                    has_aim = False
 
-        turn += result
+            turn += result
 
     game_over = display_screen()
