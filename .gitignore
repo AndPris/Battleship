@@ -1,3 +1,14 @@
 # created by virtualenv automatically
 /venv
 /.idea
+*.toc
+*.zip
+*.exe
+*.rar
+*.manifest
+*.pkg
+*.spec
+*.pyz
+ship_icon.jpg
+warn-main.txt
+*.html
