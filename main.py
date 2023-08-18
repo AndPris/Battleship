@@ -80,15 +80,15 @@ def display_screen(show_player_ships=False, show_computer_ships=False):
         player_grid.display(screen, CELL_SIZE, MARGIN, PLAYER_GRID_LEFT_MARGIN, PLAYER_GRID_TOP_MARGIN, MISS_RADIUS,
                             True)
         if computer_grid.is_loose():
-            win_text = font.render("You win!", True, (15, 101, 20))
+            win_text = font.render("You won!", True, (15, 101, 20))
         elif player_grid.is_loose():
-            win_text = font.render("Computer wins :(", True, RED)
+            win_text = font.render("Computer won :(", True, RED)
     elif game_mode == GAME_WITH_FRIEND:
         player_grid.display(screen, CELL_SIZE, MARGIN, PLAYER_GRID_LEFT_MARGIN, PLAYER_GRID_TOP_MARGIN, MISS_RADIUS, show_player_ships)
         if computer_grid.is_loose():
-            win_text = font.render("Player 1 wins!", True, (15, 101, 20))
+            win_text = font.render("Player 1 won!", True, (15, 101, 20))
         elif player_grid.is_loose():
-            win_text = font.render("Player 2 wins!", True, RED)
+            win_text = font.render("Player 2 won!", True, RED)
 
     if win_text is not None:
         restart_text = font.render("Press space to restart game", True, BLUE)
