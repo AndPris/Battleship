@@ -12,3 +12,5 @@
 ship_icon.jpg
 warn-main.txt
 *.html
+__pycache__
+build

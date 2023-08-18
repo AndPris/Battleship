@@ -22,6 +22,9 @@ COMPUTER_GRID_LEFT_MARGIN, COMPUTER_GRID_TOP_MARGIN = (
     PLAYER_GRID_LEFT_MARGIN + GRID_WIDTH + 150, PLAYER_GRID_TOP_MARGIN)
 
 ICON = pygame.image.load("icon.png")
+ROSE_ICON = pygame.image.load("rose.jpg")
+ROSE_HEIGHT = ROSE_WIDTH = 200
+ROSE_ICON = pygame.transform.scale(ROSE_ICON, (ROSE_WIDTH, ROSE_HEIGHT))
 screen = pygame.display.set_mode(SCREEN_SIZE)
 pygame.display.set_caption("Battleship")
 pygame.display.set_icon(ICON)
@@ -71,7 +74,8 @@ def display_screen(show_player_ships=False, show_computer_ships=False):
 
     screen.fill(BACKGROUND_COLOR)
     computer_grid.display(screen, CELL_SIZE, MARGIN, COMPUTER_GRID_LEFT_MARGIN, COMPUTER_GRID_TOP_MARGIN, MISS_RADIUS, show_computer_ships)
-
+    screen.blit(ROSE_ICON, (SCREEN_WIDTH-ROSE_WIDTH-20, SCREEN_HEIGHT-ROSE_HEIGHT-20))
+    
     if game_mode == GAME_WITH_COMPUTER:
         player_grid.display(screen, CELL_SIZE, MARGIN, PLAYER_GRID_LEFT_MARGIN, PLAYER_GRID_TOP_MARGIN, MISS_RADIUS,
                             True)
@@ -264,6 +268,8 @@ multiplayer_mode_buttons = Button(screen, single_mode_button.x,
                                   "Play with friend", set_multiplayer_mode)
 welcome_buttons.append(single_mode_button)
 welcome_buttons.append(multiplayer_mode_buttons)
+
+screen.blit(ROSE_ICON, (single_mode_button.x + 20, single_mode_button.y - 10 - ROSE_HEIGHT))
 
 while run:
     if game_mode is None:
